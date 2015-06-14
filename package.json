@@ -1,0 +1,9 @@
+{
+  "name": "play-pause",
+  "title": "Play/Pause",
+  "description": "Adds a Play/Pause button onto tabs that contain an HTML5 audio/video player.",
+  "author": "Daniel Kamkha",
+  "license": "MIT",
+  "version": "1.0",
+  "homepage": "https://github.com/DanielKamkha/PlayPauseFirefox"
+}
