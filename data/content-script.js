@@ -6,59 +6,40 @@
 (function() {
   "use strict";
 
-  let hasPlayerCached = false;
+  let currentPlayer = null;
+  let currentPausedStatus = null;
 
-  function checkForPlayer() {
-    let hasPlayer = checkWindowAndFrames(window);
-    if (hasPlayer != hasPlayerCached) {
-      self.port.emit("detect", hasPlayer);
-      hasPlayerCached = hasPlayer;
+  function setCurrentPlayer(player) {
+    currentPlayer = player;
+    currentPausedStatus = player.paused;
+    self.port.emit("paused", currentPausedStatus);
+  }
+
+  function mediaEventHandler(e) {
+    if (e && e.target) {
+      setCurrentPlayer(e.target);
     }
   }
 
-  function onMutation(mutations) {
-    for (let m of mutations) {
-      for (let n of m.removedNodes) {
-        if (("matches" in n && n.matches(this.lookFor)) ||
-          ("querySelector" in n && n.querySelector(this.lookFor))) {
-          checkForPlayer();
-          return;
-        }
-      }
+  function doDetach(reason) {
+    if (reason) {
+      window.removeEventListener("playing", mediaEventHandler, true);
+      window.removeEventListener("pause", mediaEventHandler, true);
     }
   }
 
-  function checkWindowAndFrames(win) {
-    let hasMedia = Array.some(
-      win.document.querySelectorAll("audio, video"),
-      v => !v.error
-    );
+  function doAttach() {
+    let players = document.querySelectorAll("audio, video");
+    let hasMedia = players.length > 0;
+    self.port.emit("detect", hasMedia);
 
     if (hasMedia) {
-      let mediaObserver = new win.MutationObserver(onMutation);
-      mediaObserver.lookFor = "audio, video";
-      mediaObserver.observe(win.document.documentElement, {
-        childList: true,
-        subtree: true
-      });
-
-      if (win != win.top) {
-        let parent = win.parent;
-        let iframeObserver = new parent.MutationObserver(onMutation);
-        iframeObserver.lookFor = "iframe";
-        iframeObserver.observe(parent.document.documentElement, {
-          childList: true,
-          subtree: true
-        });
-      }
-
-      return true;
+      setCurrentPlayer(players[0]);
+      window.addEventListener("playing", mediaEventHandler, true);
+      window.addEventListener("pause", mediaEventHandler, true);
+      self.port.on("detach", doDetach);
     }
-
-    return Array.some(
-      win.document.querySelectorAll("iframe"),
-      f => checkWindowAndFrames(f.contentWindow)
-    );
   }
 
+  doAttach();
 })();

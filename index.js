@@ -6,23 +6,31 @@
 (function() {
   "use strict";
 
+  const playSymbol = "▶︎";
+  const pauseSymbol = "❚❚";
+
   function startListening(worker) {
-    worker.port.on("detect", function (tabHasPlayer) {
+    worker.port.once("detect", function (tabHasPlayer) {
       if (tabHasPlayer) {
-        // TODO: init tab listeners
+        // TODO: init click handler
+        // TODO: init worker detach handler
+        worker.port.on("paused", function (paused) {
+          let title = worker.tab.title;
+          //title = stripSymbolFromTitle(title);
+          worker.tab.title = (paused ? pauseSymbol : playSymbol) + " " + title;
+        });
       } else {
-        // TODO: kill tab listeners
+        worker.destroy();
       }
     });
   }
 
   exports.main = function () {
+    let self = require("sdk/self");
+
     require("sdk/page-mod").PageMod({
       include: "*", // Match everything
-      attachTo: ["existing", "top", "frame"],
-      //contentStyleFile: [
-      //  self.data.url("content-style.css")
-      //],
+      attachTo: ["existing", "top"],
       contentScriptFile: [
         self.data.url("content-script.js")
       ],
