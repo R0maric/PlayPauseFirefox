@@ -8,20 +8,26 @@
 
   const playSymbol = "▶︎";
   const pauseSymbol = "❚❚";
+  const playSymbolAlt = "▶";
+  const allSymbols = [playSymbol, pauseSymbol, playSymbolAlt];
+
+  function stripSymbolsFromTitle(title) {
+    let tokenArray = title.split(" ");
+    for (let idx = 0; idx < tokenArray.length; idx++) {
+      if (allSymbols.indexOf(tokenArray[idx]) == -1) {
+        return tokenArray.slice(idx).join(" ");
+      }
+    }
+    return title;
+  }
 
   function startListening(worker) {
-    worker.port.once("detect", function (tabHasPlayer) {
-      if (tabHasPlayer) {
-        // TODO: init click handler
-        // TODO: init worker detach handler
-        worker.port.on("paused", function (paused) {
-          let title = worker.tab.title;
-          //title = stripSymbolFromTitle(title);
-          worker.tab.title = (paused ? pauseSymbol : playSymbol) + " " + title;
-        });
-      } else {
-        worker.destroy();
-      }
+    worker.port.once("init", function () {
+      // TODO: init click handler
+      // TODO: init worker detach handler
+      worker.port.on("paused", function (paused) {
+        worker.tab.title = (paused ? pauseSymbol : playSymbol) + " " + stripSymbolsFromTitle(worker.tab.title);
+      });
     });
   }
 

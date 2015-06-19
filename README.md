@@ -4,13 +4,13 @@ A Firefox add-on that adds a Play/Pause button onto tabs that contain an HTML5 a
 
 
 ## Usage
-Work in progress.
+Work in progress. Not yet published to Mozilla repo.
 
 ## Background
 Some verbose text goes here.
 
 ## Known Limitations
-None yet. But there will be.
+As of version 0.8 this extension is in Beta. Means: guaranteed to have incompatibilies with some major audio/video sites.
 
 ## License
 All source code in this project are licensed under the MIT license.
