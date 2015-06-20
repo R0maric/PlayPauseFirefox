@@ -6,6 +6,7 @@
 // TODO: analyze player "playability" by src
 // TODO: handle pin, unpin, rearrange
 // TODO: options: "consume" site's indicator, show on pinned tabs
+// TODO: localization: options
 
 (function() {
   "use strict";
@@ -29,16 +30,26 @@
 
   function startListening(worker) {
     worker.port.once("init", function () {
+      let tab = worker.tab;
+      let storedTitle = null;
       let playPause = tabClick.addPlayPauseSymbol(worker);
-      if (playPause) {
-        worker.on("detach", function () {
+      worker.on("detach", function () {
+        if (storedTitle !== null) {
+          tab.title = storedTitle;
+        }
+        if (playPause) {
           playPause.remove();
-        });
-        worker.port.on("paused", function (paused) {
-          worker.tab.title = stripSymbolsFromTitle(worker.tab.title);
-          playPause.innerHTML = (paused ? pauseSymbol : playSymbol);
-        });
-      }
+        }
+      });
+      worker.port.on("paused", function (paused) {
+        if (playPause) {
+          playPause.innerHTML = paused ? pauseSymbol : playSymbol;
+        }
+      });
+      worker.port.on("title", function () {
+        storedTitle = tab.title;
+        tab.title = stripSymbolsFromTitle(tab.title);
+      });
     });
   }
 

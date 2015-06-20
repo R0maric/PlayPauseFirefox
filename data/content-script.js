@@ -32,6 +32,7 @@
     }
     if (!currentPlayer) {
       self.port.emit("init");
+      self.port.emit("title");
     }
     currentPlayer = player;
     currentPausedState = player.paused;
@@ -45,7 +46,7 @@
   }
 
   function createTitleObserver() {
-    let observer = new window.MutationObserver(emitPausedState);
+    let observer = new window.MutationObserver(function() { self.port.emit("title"); });
     observer.observe(document.querySelector('head > title'), { subtree: true, characterData: true, childList: true });
     return observer;
   }
