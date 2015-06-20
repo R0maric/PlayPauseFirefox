@@ -3,7 +3,7 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: analyze player "playability" by src
+// TODO: xulTab title mutation observer
 // TODO: handle pin, unpin, rearrange
 // TODO: options: "consume" site's indicator, show on pinned tabs
 // TODO: localization: options
@@ -15,28 +15,14 @@
 
   const playSymbol = "▶︎";
   const pauseSymbol = "❚❚";
-  const playSymbolAlt = "▶";
-  const allSymbols = [playSymbol, pauseSymbol, playSymbolAlt];
-
-  function stripSymbolsFromTitle(title) {
-    let tokenArray = title.split(" ");
-    for (let idx = 0; idx < tokenArray.length; idx++) {
-      if (allSymbols.indexOf(tokenArray[idx]) == -1) {
-        return tokenArray.slice(idx).join(" ");
-      }
-    }
-    return title;
-  }
 
   function startListening(worker) {
     worker.port.once("init", function () {
       let tab = worker.tab;
-      let storedTitle = null;
       let playPause = tabClick.addPlayPauseSymbol(worker);
+
       worker.on("detach", function () {
-        if (storedTitle !== null) {
-          tab.title = storedTitle;
-        }
+        tabClick.removeTitleObserver(tab);
         if (playPause) {
           playPause.remove();
         }
@@ -46,10 +32,8 @@
           playPause.innerHTML = paused ? pauseSymbol : playSymbol;
         }
       });
-      worker.port.on("title", function () {
-        storedTitle = tab.title;
-        tab.title = stripSymbolsFromTitle(tab.title);
-      });
+
+      tabClick.addTitleObserver(tab);
     });
   }
 

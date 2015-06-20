@@ -6,7 +6,6 @@
 (function() {
   "use strict";
 
-  let titleObserver = null;
   let currentPlayer = null;
   let currentPausedState = null;
 
@@ -32,44 +31,32 @@
     }
     if (!currentPlayer) {
       self.port.emit("init");
-      self.port.emit("title");
     }
     currentPlayer = player;
     currentPausedState = player.paused;
     emitPausedState();
   }
 
-  function mediaEventHandler(e) {
-    if (e && e.target) {
-      setCurrentPlayer(e.target);
+  function mediaEventHandler(event) {
+    if (event && event.target) {
+      setCurrentPlayer(event.target);
     }
   }
 
-  function createTitleObserver() {
-    let observer = new window.MutationObserver(function() { self.port.emit("title"); });
-    observer.observe(document.querySelector('head > title'), { subtree: true, characterData: true, childList: true });
-    return observer;
-  }
-
   function doAttach() {
-    let players = document.querySelectorAll("audio, video");
+    let players = document.querySelectorAll("audio[src]:not([src='']), video[src]:not([src=''])");
     if (players.length > 0) {
       setCurrentPlayer(players[0]);
     }
 
     window.addEventListener("playing", mediaEventHandler, true);
     window.addEventListener("pause", mediaEventHandler, true);
-    titleObserver = createTitleObserver();
 
     self.port.on("toggle", togglePausedState);
     self.port.on("detach", doDetach);
   }
 
   function doDetach(reason) {
-    if (titleObserver) {
-      titleObserver.disconnect();
-      titleObserver = null;
-    }
     if (reason) {
       window.removeEventListener("playing", mediaEventHandler, true);
       window.removeEventListener("pause", mediaEventHandler, true);
