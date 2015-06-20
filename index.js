@@ -3,8 +3,13 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
+// TODO: analyze player "playability" by src
+// TODO: add an HTML image
+
 (function() {
   "use strict";
+
+  const tabClick = require("./tab-click.js");
 
   const playSymbol = "▶︎";
   const pauseSymbol = "❚❚";
@@ -28,6 +33,7 @@
       worker.port.on("paused", function (paused) {
         worker.tab.title = (paused ? pauseSymbol : playSymbol) + " " + stripSymbolsFromTitle(worker.tab.title);
       });
+      tabClick.addClickHandlerForTab(worker);
     });
   }
 
@@ -42,5 +48,13 @@
       ],
       onAttach: startListening
     });
+  };
+
+  exports.onUnload = function(reason) {
+    if (reason == "shutdown") {
+      return;
+    }
+
+    // TODO: remove click handlers
   };
 })();

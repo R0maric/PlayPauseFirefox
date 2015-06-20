@@ -8,11 +8,21 @@
 
   let titleObserver = null;
   let currentPlayer = null;
-  let currentPausedStatus = null;
+  let currentPausedState = null;
 
-  function emitPausedStatus() {
+  function emitPausedState() {
     if (currentPlayer) {
-      self.port.emit("paused", currentPausedStatus);
+      self.port.emit("paused", currentPausedState);
+    }
+  }
+
+  function togglePausedState() {
+    if (currentPlayer) {
+      if (currentPausedState) {
+        currentPlayer.play();
+      } else {
+        currentPlayer.pause();
+      }
     }
   }
 
@@ -24,8 +34,8 @@
       self.port.emit("init");
     }
     currentPlayer = player;
-    currentPausedStatus = player.paused;
-    emitPausedStatus();
+    currentPausedState = player.paused;
+    emitPausedState();
   }
 
   function mediaEventHandler(e) {
@@ -35,7 +45,7 @@
   }
 
   function createTitleObserver() {
-    let observer = new window.MutationObserver(emitPausedStatus);
+    let observer = new window.MutationObserver(emitPausedState);
     observer.observe(document.querySelector('head > title'), { subtree: true, characterData: true, childList: true });
     return observer;
   }
@@ -50,6 +60,7 @@
     window.addEventListener("pause", mediaEventHandler, true);
     titleObserver = createTitleObserver();
 
+    self.port.on("toggle", togglePausedState);
     self.port.on("detach", doDetach);
   }
 
