@@ -4,7 +4,8 @@
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
 // TODO: analyze player "playability" by src
-// TODO: add an HTML image
+// TODO: handle pin, unpin, rearrange
+// TODO: options: "consume" site's indicator, show on pinned tabs
 
 (function() {
   "use strict";
@@ -28,12 +29,16 @@
 
   function startListening(worker) {
     worker.port.once("init", function () {
-      // TODO: init click handler
-      // TODO: init worker detach handler
-      worker.port.on("paused", function (paused) {
-        worker.tab.title = (paused ? pauseSymbol : playSymbol) + " " + stripSymbolsFromTitle(worker.tab.title);
-      });
-      tabClick.addClickHandlerForTab(worker);
+      let playPause = tabClick.addPlayPauseSymbol(worker);
+      if (playPause) {
+        worker.on("detach", function () {
+          playPause.remove();
+        });
+        worker.port.on("paused", function (paused) {
+          worker.tab.title = stripSymbolsFromTitle(worker.tab.title);
+          playPause.innerHTML = (paused ? pauseSymbol : playSymbol);
+        });
+      }
     });
   }
 
@@ -48,13 +53,5 @@
       ],
       onAttach: startListening
     });
-  };
-
-  exports.onUnload = function(reason) {
-    if (reason == "shutdown") {
-      return;
-    }
-
-    // TODO: remove click handlers
   };
 })();

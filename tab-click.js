@@ -8,73 +8,48 @@
 
   const { viewFor } = require("sdk/view/core");
 
-  const tabIconMarginLeft = 32;
-  const tabMarginTop = 4;
-  const hitBoxX = 12;
-  const hitBoxY = 18;
+  // We will add Play/Pause symbol to the left of the first of these that exists.
+  // In order of priority: "Noise Control" indicator, standard Close button, "Tab Mix Plus" Close button
+  const addBeforeAnonids = ["noise-indicator", "close-button", "tmp-close-button"];
 
-  function clickHandler(worker, event) {
-    // Check there's only one click of the left button.
-    if (event.button != 0 || event.detail != 1) {
-      return;
-    }
-
-    // Check hitbox
-    if ((event.layerX - tabIconMarginLeft > hitBoxX) || (event.layerY - tabMarginTop > hitBoxY)) {
-      return;
-    }
-
-    worker.port.emit("toggle");
-    event.stopPropagation();
-  }
-
-  function addClickHandlerForTab(sdkWorker) {
-    let xulTab = viewFor(sdkWorker.tab);
+  function addPlayPauseSymbol(worker) {
+    let xulTab = viewFor(worker.tab);
     let chromeDocument = xulTab.ownerDocument;
-    let tabLabel = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "tab-label");
-    let handler = clickHandler.bind(undefined, sdkWorker);
+    let playPause = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "play-pause");
 
-    tabLabel.style.pointerEvents = "all";
-    tabLabel.addEventListener("mousedown", handler, true);
+    if (!playPause) {
+      playPause = chromeDocument.createElement("div");
+      playPause.setAttribute("anonid", "play-pause");
+      playPause.style.pointerEvents = "all";
+      playPause.style.cursor = "default";
 
-      /*
-       xulTab.addEventListener("TabMove", updateOnRearrange, false);
-       xulTab.addEventListener("TabAttrModified", fixBinding, false);
-       xulTab.addEventListener("TabPinned", fixBinding, false);
-       xulTab.addEventListener("TabUnpinned", fixBinding, false);
-       */
-    return handler;
+      playPause.addEventListener("mousedown", function (event) {
+        // Make sure it's a single LMB click.
+        if (event.button != 0 || event.detail != 1) {
+          return;
+        }
+        worker.port.emit("toggle");
+        event.stopPropagation();
+      }, true);
+
+      let addBefore = null;
+      for (let i = 0; i < addBeforeAnonids.length; i++) {
+        addBefore = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", addBeforeAnonids[i]);
+        if (addBefore) {
+          break;
+        }
+      }
+
+      let tabContent = chromeDocument.getAnonymousElementByAttribute(xulTab, "class", "tab-content");
+      if (addBefore) {
+        tabContent.insertBefore(playPause, addBefore);
+      } else {
+        tabContent.appendChild(playPause);
+      }
+    }
+
+    return playPause;
   }
 
-  exports.addClickHandlerForTab = addClickHandlerForTab;
+  exports.addPlayPauseSymbol = addPlayPauseSymbol;
 })();
-
-/*
-function fixBinding(event) {
-	let xulTab = event.target;
-	let chromeDocument = xulTab.ownerDocument;
-	let closeButton = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "close-button");
-	if (!closeButton) {
-		return;
-	}
-
-	if (xulTab.pinned) {
-		closeButton.setAttribute("pinned", "true");
-	} else {
-		closeButton.removeAttribute("pinned");
-	}
-
-	if (xulTab.selected) {
-		closeButton.setAttribute("selected", "true");
-	} else {
-		closeButton.removeAttribute("selected");
-	}
-}
-
-function updateOnRearrange(event) {
-	let xulTab = event.target;
-	let chromeDocument = xulTab.ownerDocument;
-	let chromeWindow = chromeDocument.defaultView;
-	chromeWindow.gBrowser.getBrowserForTab(xulTab).messageManager.sendAsyncMessage("NoiseControl:checkNoise");
-}
-*/
