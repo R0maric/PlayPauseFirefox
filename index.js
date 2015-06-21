@@ -62,49 +62,41 @@
     return playPause;
   }
 
-  function stripSymbolsFromLabel(label) {
-    let tokenArray = label.value.split(" ");
+  function stripSymbolsFromLabel(xulTab) {
+    let tokenArray = xulTab.label.split(" ");
     for (let idx = 0; idx < tokenArray.length; idx++) {
       if (stripSymbols.indexOf(tokenArray[idx]) == -1) {
-        label.value = tokenArray.slice(idx).join(" ");
+        xulTab.label = tokenArray.slice(idx).join(" ");
         break;
       }
     }
   }
 
-  function valueModifiedHandler(event) {
-    if (event.attrName != "value") {
-      return;
-    }
+  function tabAttrModifiedHandler(event) {
     stripSymbolsFromLabel(event.target);
   }
 
   function addRemoveTitleObserver(sdkTab, shouldAdd) {
     let xulTab = viewFor(sdkTab);
-    let chromeDocument = xulTab.ownerDocument;
-    let tabTitle = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "tab-label");
-
-    if (tabTitle) {
-      if (shouldAdd) {
-        stripSymbolsFromLabel(tabTitle);
-        tabTitle.addEventListener("DOMAttrModified", valueModifiedHandler, true);
-      } else {
-        tabTitle.removeEventListener("DOMAttrModified", valueModifiedHandler, true);
-        tabTitle.value = sdkTab.title;
-      }
+    if (shouldAdd) {
+      stripSymbolsFromLabel(xulTab);
+      xulTab.addEventListener("TabAttrModified", tabAttrModifiedHandler, false);
+    } else {
+      xulTab.removeEventListener("TabAttrModified", tabAttrModifiedHandler, false);
+      xulTab.label = sdkTab.title;
     }
   }
 
   function startListening(worker) {
-    let tab = worker.tab;
-    let id = tab.id;
+    let sdkTab = worker.tab;
+    let id = sdkTab.id;
     let playPause = null;
 
     workers[id] = worker;
 
     worker.on("detach", function () {
       if (simplePrefs.prefs["strip-symbols"]) {
-        addRemoveTitleObserver(tab, false);
+        addRemoveTitleObserver(sdkTab, false);
       }
       if (playPause) {
         playPause.remove();
@@ -117,16 +109,14 @@
       }
     });
     worker.port.once("init", function () {
-      playPause = addPlayPauseSymbol(tab, function() { worker.port.emit("toggle"); });
+      playPause = addPlayPauseSymbol(sdkTab, function() { worker.port.emit("toggle"); });
       if (simplePrefs.prefs["strip-symbols"]) {
-        addRemoveTitleObserver(tab, true);
+        addRemoveTitleObserver(sdkTab, true);
       }
     });
   }
 
   exports.main = function () {
-    let self = require("sdk/self");
-
     simplePrefs.on("strip-symbols", function () {
       for (let id in workers) {
         addRemoveTitleObserver(workers[id].tab, simplePrefs.prefs["strip-symbols"]);
@@ -136,7 +126,7 @@
     require("sdk/page-mod").PageMod({
       include: "*", // Match everything
       attachTo: ["existing", "top"],
-      contentScriptFile: self.data.url("content-script.js"),
+      contentScriptFile: require("sdk/self").data.url("content-script.js"),
       onAttach: startListening
     });
   };
