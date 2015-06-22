@@ -3,9 +3,8 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: bandcamp src fix: play through Play button
 // TODO: icon
-// TODO: test with major sites
+// TODO: test with major sites, review the need of site-specific fixes
 
 (function() {
   "use strict";

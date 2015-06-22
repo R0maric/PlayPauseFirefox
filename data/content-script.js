@@ -6,8 +6,22 @@
 (function() {
   "use strict";
 
+  const siteSpecificFixes = [
+    ".play-btn, .playbutton, .item_link_play" // Bandcamp
+  ];
+
   let currentPlayer = null;
   let currentPausedState = null;
+
+  function PseudoPlayer(selector) {
+    let button = document.querySelector(selector);
+    let clickFunc = function() { button.click(); };
+    return {
+      play: clickFunc,
+      pause: clickFunc,
+      paused: true
+    };
+  }
 
   function emitPausedState() {
     if (currentPlayer) {
@@ -44,9 +58,15 @@
   }
 
   function doAttach() {
-    let players = document.querySelectorAll("audio[src]:not([src='']), video[src]:not([src=''])");
-    if (players.length > 0) {
-      setCurrentPlayer(players[0]);
+    let player = document.querySelector("audio[src]:not([src='']), video[src]:not([src=''])");
+    if (!player && document.querySelector("audio, video")) {
+      let selector = siteSpecificFixes.find(function(elem) { return document.querySelector(elem); });
+      if (selector) {
+        player = new PseudoPlayer(selector);
+      }
+    }
+    if (player) {
+      setCurrentPlayer(player);
     }
 
     window.addEventListener("playing", mediaEventHandler, true);
