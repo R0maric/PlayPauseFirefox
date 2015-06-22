@@ -53,6 +53,7 @@
     window.addEventListener("pause", mediaEventHandler, true);
 
     self.port.on("toggle", togglePausedState);
+    self.port.on("query", emitPausedState);
     self.port.on("detach", doDetach);
   }
 
