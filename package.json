@@ -4,15 +4,6 @@
   "description": "Adds a Play/Pause button onto tabs that contain an HTML5 audio/video player.",
   "author": "Daniel Kamkha",
   "license": "MIT",
-  "version": "0.8.0",
-  "homepage": "https://github.com/DanielKamkha/PlayPauseFirefox",
-  "preferences": [
-    {
-      "name": "strip-symbols",
-      "title": "Hide page's own playback indicator",
-      "description": "",
-      "type": "bool",
-      "value": true
-    }
-  ]
+  "version": "0.9.0",
+  "homepage": "https://github.com/DanielKamkha/PlayPauseFirefox"
 }

@@ -3,59 +3,45 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
+// TODO: test label propagation with pin/unpin and rearrange
 // TODO: icon
 // TODO: test with major sites, review the need of site-specific fixes
+// TODO: v1.0: research feasibility of site-specific Flash fixes
 
 (function() {
   "use strict";
 
   const { viewFor } = require("sdk/view/core");
   const { getTabId } = require("sdk/tabs/utils");
-  const simplePrefs = require("sdk/simple-prefs");
 
   const playSymbol = "▶︎";
   const pauseSymbol = "❚❚";
   const playSymbolAlt = "▶";
   const stripSymbols = [playSymbol, playSymbolAlt];
 
-  const noiseIndicatorAnonid = "noise-indicator";
-  const closeButtonAnonid = "close-button";
-  const tmpCloseButtonAnonid = "tmp-close-button";
-  const playPauseAnonid = "play-pause";
-
-  // We will add Play/Pause symbol to the left of the first of these that exists.
-  // In order of priority: "Noise Control" indicator, standard Close button, "Tab Mix Plus" Close button
-  const addBeforeAnonids = [noiseIndicatorAnonid, closeButtonAnonid, tmpCloseButtonAnonid];
-
   let workers = {}; // workers cache
+
+  function getPlayPauseSymbol(xulTab) {
+    return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "anonid", "play-pause");
+  }
+
+  function getTabLabelElement(xulTab) {
+    return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "anonid", "tab-label");
+  }
+
+  function setTabLabelValueForTab(xulTab, value, shouldStrip) {
+    let tabLabel = getTabLabelElement(xulTab);
+    if (tabLabel) {
+      if (shouldStrip) {
+        value = stripSymbolsFromLabel(value);
+      }
+      tabLabel.value = value;
+    }
+  }
 
   function readdPlayPauseSymbol(event) {
     let xulTab = event.target;
     addPlayPauseSymbol(xulTab);
-  }
-
-  function fixCloseButton(event) {
-    let xulTab = event.target;
-    let chromeDocument = xulTab.ownerDocument;
-
-    let closeButton = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", closeButtonAnonid);
-    if (!closeButton) {
-      // Check if "Tab Mix Plus" Close button is present.
-      closeButton = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", tmpCloseButtonAnonid);
-    }
-    if (!closeButton) {
-      return;
-    }
-
-    if (xulTab.pinned) {
-      closeButton.setAttribute("pinned", "true");
-    } else {
-      closeButton.removeAttribute("pinned");
-    }
-  }
-
-  function getPlayPauseSymbol(xulTab) {
-    return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "anonid", playPauseAnonid);
   }
 
   function addPlayPauseSymbol(xulTab) {
@@ -69,6 +55,7 @@
       playPause.setAttribute("anonid", "play-pause");
       playPause.style.pointerEvents = "all";
       playPause.style.cursor = "default";
+      playPause.style.marginRight = "3px";
 
       playPause.addEventListener("mousedown", function (event) {
         // Make sure it's a single LMB click.
@@ -79,24 +66,13 @@
         event.stopPropagation();
       }, true);
 
-      let addBefore = null;
-      for (let i = 0; i < addBeforeAnonids.length; i++) {
-        addBefore = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", addBeforeAnonids[i]);
-        if (addBefore) {
-          break;
-        }
-      }
-
       let tabContent = chromeDocument.getAnonymousElementByAttribute(xulTab, "class", "tab-content");
-      if (addBefore) {
-        tabContent.insertBefore(playPause, addBefore);
+      let tabLabel = getTabLabelElement(xulTab);
+      if (tabLabel) {
+        tabContent.insertBefore(playPause, tabLabel);
       } else {
         tabContent.appendChild(playPause);
       }
-
-      xulTab.addEventListener("TabMove", readdPlayPauseSymbol, false);
-      xulTab.addEventListener("TabPinned", fixCloseButton, false);
-      xulTab.addEventListener("TabUnpinned", fixCloseButton, false);
 
       worker.port.emit("query");
     }
@@ -106,34 +82,41 @@
     let playPause = getPlayPauseSymbol(xulTab);
     if (playPause) {
       playPause.remove();
-      xulTab.removeEventListener("TabMove", readdPlayPauseSymbol, false);
-      xulTab.removeEventListener("TabPinned", fixCloseButton, false);
-      xulTab.removeEventListener("TabUnpinned", fixCloseButton, false);
     }
   }
 
-  function stripSymbolsFromLabel(xulTab) {
-    let tokenArray = xulTab.label.split(" ");
+  function addEventBindings(xulTab) {
+    xulTab.addEventListener("DOMAttrModified", domAttrModifiedHandler, false);
+    xulTab.addEventListener("TabMove", readdPlayPauseSymbol, false);
+    //xulTab.addEventListener("TabPinned", fixCloseButton, false);
+    //xulTab.addEventListener("TabUnpinned", fixCloseButton, false);
+  }
+
+  function removeEventBindings(xulTab) {
+    xulTab.removeEventListener("DOMAttrModified", domAttrModifiedHandler, false);
+    xulTab.removeEventListener("TabMove", readdPlayPauseSymbol, false);
+    //xulTab.removeEventListener("TabPinned", fixCloseButton, false);
+    //xulTab.removeEventListener("TabUnpinned", fixCloseButton, false);
+  }
+
+  function stripSymbolsFromLabel(label) {
+    let tokenArray = label.split(" ");
     for (let idx = 0; idx < tokenArray.length; idx++) {
       if (stripSymbols.indexOf(tokenArray[idx]) == -1) {
-        xulTab.label = tokenArray.slice(idx).join(" ");
-        break;
+        return tokenArray.slice(idx).join(" ");
       }
     }
+    return label;
   }
 
-  function tabAttrModifiedHandler(event) {
+  function domAttrModifiedHandler(event) {
+    if (event.attrName != "value") {
+      return;
+    }
     let xulTab = event.target;
-    stripSymbolsFromLabel(xulTab);
-  }
-
-  function addRemoveTitleObserver(xulTab, shouldAdd, storedTitle) {
-    if (shouldAdd) {
-      stripSymbolsFromLabel(xulTab);
-      xulTab.addEventListener("TabAttrModified", tabAttrModifiedHandler, false);
-    } else {
-      xulTab.removeEventListener("TabAttrModified", tabAttrModifiedHandler, false);
-      xulTab.label = storedTitle;
+    let playPause = getPlayPauseSymbol(xulTab);
+    if (playPause) {
+      setTabLabelValueForTab(xulTab, event.newValue, true);
     }
   }
 
@@ -145,34 +128,26 @@
     workers[id] = worker;
 
     worker.on("detach", function () {
-      if (simplePrefs.prefs["strip-symbols"]) {
-        addRemoveTitleObserver(xulTab, false, sdkTab.title);
-      }
+      removeEventBindings(xulTab);
       removePlayPauseSymbol(xulTab);
+      setTabLabelValueForTab(xulTab, sdkTab.title, false);
       xulTab = null;
       delete workers[id];
     });
     worker.port.on("paused", function (paused) {
       let playPause = getPlayPauseSymbol(xulTab);
       if (playPause) {
-        playPause.innerHTML = paused ? pauseSymbol : playSymbol;
+        playPause.innerHTML = (paused ? pauseSymbol : playSymbol) + " ";
       }
     });
     worker.port.once("init", function () {
+      setTabLabelValueForTab(xulTab, xulTab.label, true);
       addPlayPauseSymbol(xulTab);
-      if (simplePrefs.prefs["strip-symbols"]) {
-        addRemoveTitleObserver(xulTab, true);
-      }
+      addEventBindings(xulTab);
     });
   }
 
   exports.main = function () {
-    simplePrefs.on("strip-symbols", function () {
-      for (let id in workers) {
-        addRemoveTitleObserver(workers[id].tab, simplePrefs.prefs["strip-symbols"]);
-      }
-    });
-
     require("sdk/page-mod").PageMod({
       include: "*", // Match everything
       attachTo: ["existing", "top"],
