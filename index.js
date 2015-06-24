@@ -3,7 +3,6 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: test label propagation with pin/unpin and rearrange
 // TODO: icon
 // TODO: test with major sites, review the need of site-specific fixes
 // TODO: v1.0: research feasibility of site-specific Flash fixes
@@ -21,7 +20,7 @@
 
   let workers = {}; // workers cache
 
-  function getPlayPauseSymbol(xulTab) {
+  function getPlayPauseElement(xulTab) {
     return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "anonid", "play-pause");
   }
 
@@ -29,23 +28,8 @@
     return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "anonid", "tab-label");
   }
 
-  function setTabLabelValueForTab(xulTab, value, shouldStrip) {
-    let tabLabel = getTabLabelElement(xulTab);
-    if (tabLabel) {
-      if (shouldStrip) {
-        value = stripSymbolsFromLabel(value);
-      }
-      tabLabel.value = value;
-    }
-  }
-
-  function readdPlayPauseSymbol(event) {
-    let xulTab = event.target;
-    addPlayPauseSymbol(xulTab);
-  }
-
   function addPlayPauseSymbol(xulTab) {
-    let playPause = getPlayPauseSymbol(xulTab);
+    let playPause = getPlayPauseElement(xulTab);
 
     if (!playPause) {
       let chromeDocument = xulTab.ownerDocument;
@@ -79,13 +63,50 @@
   }
 
   function removePlayPauseSymbol(xulTab) {
-    let playPause = getPlayPauseSymbol(xulTab);
+    let playPause = getPlayPauseElement(xulTab);
     if (playPause) {
       playPause.remove();
     }
   }
 
-  function fixCloseButton(event) {
+  function stripSymbolsFromLabel(label) {
+    let tokenArray = label.split(" ");
+    for (let idx = 0; idx < tokenArray.length; idx++) {
+      if (stripSymbols.indexOf(tokenArray[idx]) == -1) {
+        return tokenArray.slice(idx).join(" ");
+      }
+    }
+    return label;
+  }
+
+  function setTabLabelValueForTab(xulTab, value, shouldStrip) {
+    let tabLabel = getTabLabelElement(xulTab);
+    if (tabLabel) {
+      if (shouldStrip) {
+        value = stripSymbolsFromLabel(value);
+      }
+      tabLabel.value = value;
+    }
+  }
+
+  function domAttrModifiedHandler(event) {
+    if (event.attrName != "value") {
+      return;
+    }
+    let xulTab = event.target;
+    let playPause = getPlayPauseElement(xulTab);
+    if (playPause) {
+      setTabLabelValueForTab(xulTab, event.newValue, true);
+    }
+  }
+
+  function tabMoveHandler(event) {
+    let xulTab = event.target;
+    setTabLabelValueForTab(xulTab, xulTab.label, true);
+    addPlayPauseSymbol(xulTab);
+  }
+
+  function tabPinUnpinHandler(event) {
     let xulTab = event.target;
     let chromeDocument = xulTab.ownerDocument;
 
@@ -106,37 +127,16 @@
 
   function addEventBindings(xulTab) {
     xulTab.addEventListener("DOMAttrModified", domAttrModifiedHandler, false);
-    xulTab.addEventListener("TabMove", readdPlayPauseSymbol, false);
-    xulTab.addEventListener("TabPinned", fixCloseButton, false);
-    xulTab.addEventListener("TabUnpinned", fixCloseButton, false);
+    xulTab.addEventListener("TabMove", tabMoveHandler, false);
+    xulTab.addEventListener("TabPinned", tabPinUnpinHandler, false);
+    xulTab.addEventListener("TabUnpinned", tabPinUnpinHandler, false);
   }
 
   function removeEventBindings(xulTab) {
     xulTab.removeEventListener("DOMAttrModified", domAttrModifiedHandler, false);
-    xulTab.removeEventListener("TabMove", readdPlayPauseSymbol, false);
-    xulTab.removeEventListener("TabPinned", fixCloseButton, false);
-    xulTab.removeEventListener("TabUnpinned", fixCloseButton, false);
-  }
-
-  function stripSymbolsFromLabel(label) {
-    let tokenArray = label.split(" ");
-    for (let idx = 0; idx < tokenArray.length; idx++) {
-      if (stripSymbols.indexOf(tokenArray[idx]) == -1) {
-        return tokenArray.slice(idx).join(" ");
-      }
-    }
-    return label;
-  }
-
-  function domAttrModifiedHandler(event) {
-    if (event.attrName != "value") {
-      return;
-    }
-    let xulTab = event.target;
-    let playPause = getPlayPauseSymbol(xulTab);
-    if (playPause) {
-      setTabLabelValueForTab(xulTab, event.newValue, true);
-    }
+    xulTab.removeEventListener("TabMove", tabMoveHandler, false);
+    xulTab.removeEventListener("TabPinned", tabPinUnpinHandler, false);
+    xulTab.removeEventListener("TabUnpinned", tabPinUnpinHandler, false);
   }
 
   function startListening(worker) {
@@ -146,23 +146,23 @@
 
     workers[id] = worker;
 
+    worker.port.once("init", function () {
+      setTabLabelValueForTab(xulTab, xulTab.label, true);
+      addPlayPauseSymbol(xulTab);
+      addEventBindings(xulTab);
+    });
+    worker.port.on("paused", function (paused) {
+      let playPause = getPlayPauseElement(xulTab);
+      if (playPause) {
+        playPause.innerHTML = (paused ? pauseSymbol : playSymbol);
+      }
+    });
     worker.on("detach", function () {
       removeEventBindings(xulTab);
       removePlayPauseSymbol(xulTab);
       setTabLabelValueForTab(xulTab, sdkTab.title, false);
       xulTab = null;
       delete workers[id];
-    });
-    worker.port.on("paused", function (paused) {
-      let playPause = getPlayPauseSymbol(xulTab);
-      if (playPause) {
-        playPause.innerHTML = (paused ? pauseSymbol : playSymbol) + " ";
-      }
-    });
-    worker.port.once("init", function () {
-      setTabLabelValueForTab(xulTab, xulTab.label, true);
-      addPlayPauseSymbol(xulTab);
-      addEventBindings(xulTab);
     });
   }
 
