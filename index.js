@@ -3,9 +3,8 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: icon
-// TODO: test with major sites, review the need of site-specific fixes
-// TODO: v1.0: research feasibility of site-specific Flash fixes
+// TODO: v1.0: site-specific fixes: Flash: Soundcloud, Pandora, more
+// TODO: v1.0: site-specific fixes: investigate
 
 (function() {
   "use strict";
@@ -154,7 +153,7 @@
     worker.port.on("paused", function (paused) {
       let playPause = getPlayPauseElement(xulTab);
       if (playPause) {
-        playPause.innerHTML = (paused ? pauseSymbol : playSymbol);
+        playPause.textContent = (paused ? pauseSymbol : playSymbol);
       }
     });
     worker.on("detach", function () {
