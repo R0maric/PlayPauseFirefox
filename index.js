@@ -85,18 +85,37 @@
     }
   }
 
+  function fixCloseButton(event) {
+    let xulTab = event.target;
+    let chromeDocument = xulTab.ownerDocument;
+
+    let closeButton = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "close-button");
+    if (!closeButton) {
+      // Check if "Tab Mix Plus" Close button is present.
+      closeButton = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "tmp-close-button");
+    }
+    if (!closeButton) {
+      return;
+    }
+    if (xulTab.pinned) {
+      closeButton.setAttribute("pinned", "true");
+    } else {
+      closeButton.removeAttribute("pinned");
+    }
+  }
+
   function addEventBindings(xulTab) {
     xulTab.addEventListener("DOMAttrModified", domAttrModifiedHandler, false);
     xulTab.addEventListener("TabMove", readdPlayPauseSymbol, false);
-    //xulTab.addEventListener("TabPinned", fixCloseButton, false);
-    //xulTab.addEventListener("TabUnpinned", fixCloseButton, false);
+    xulTab.addEventListener("TabPinned", fixCloseButton, false);
+    xulTab.addEventListener("TabUnpinned", fixCloseButton, false);
   }
 
   function removeEventBindings(xulTab) {
     xulTab.removeEventListener("DOMAttrModified", domAttrModifiedHandler, false);
     xulTab.removeEventListener("TabMove", readdPlayPauseSymbol, false);
-    //xulTab.removeEventListener("TabPinned", fixCloseButton, false);
-    //xulTab.removeEventListener("TabUnpinned", fixCloseButton, false);
+    xulTab.removeEventListener("TabPinned", fixCloseButton, false);
+    xulTab.removeEventListener("TabUnpinned", fixCloseButton, false);
   }
 
   function stripSymbolsFromLabel(label) {
