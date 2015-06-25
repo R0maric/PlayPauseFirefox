@@ -4,6 +4,6 @@
   "description": "Adds a Play/Pause toggle onto tabs that contain an HTML5 audio/video player.",
   "author": "Daniel Kamkha",
   "license": "MIT",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "homepage": "https://github.com/DanielKamkha/PlayPauseFirefox"
 }

@@ -38,7 +38,7 @@
       playPause.setAttribute("anonid", "play-pause");
       playPause.style.pointerEvents = "all";
       playPause.style.cursor = "default";
-      playPause.style.marginRight = "3px";
+      playPause.style.marginRight = "0.25em";
 
       playPause.addEventListener("mousedown", function (event) {
         // Make sure it's a single LMB click.
@@ -88,17 +88,6 @@
     }
   }
 
-  function domAttrModifiedHandler(event) {
-    if (event.attrName != "value") {
-      return;
-    }
-    let xulTab = event.target;
-    let playPause = getPlayPauseElement(xulTab);
-    if (playPause) {
-      setTabLabelValueForTab(xulTab, event.newValue, true);
-    }
-  }
-
   function tabMoveHandler(event) {
     let xulTab = event.target;
     setTabLabelValueForTab(xulTab, xulTab.label, true);
@@ -125,14 +114,12 @@
   }
 
   function addEventBindings(xulTab) {
-    xulTab.addEventListener("DOMAttrModified", domAttrModifiedHandler, false);
     xulTab.addEventListener("TabMove", tabMoveHandler, false);
     xulTab.addEventListener("TabPinned", tabPinUnpinHandler, false);
     xulTab.addEventListener("TabUnpinned", tabPinUnpinHandler, false);
   }
 
   function removeEventBindings(xulTab) {
-    xulTab.removeEventListener("DOMAttrModified", domAttrModifiedHandler, false);
     xulTab.removeEventListener("TabMove", tabMoveHandler, false);
     xulTab.removeEventListener("TabPinned", tabPinUnpinHandler, false);
     xulTab.removeEventListener("TabUnpinned", tabPinUnpinHandler, false);
@@ -155,6 +142,9 @@
       if (playPause) {
         playPause.textContent = (paused ? pauseSymbol : playSymbol);
       }
+    });
+    worker.port.on("title", function (title) {
+      setTabLabelValueForTab(xulTab, title, true);
     });
     worker.on("detach", function () {
       removeEventBindings(xulTab);

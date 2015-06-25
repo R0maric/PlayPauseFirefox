@@ -10,6 +10,7 @@
 
   let currentPlayer = null;
   let currentPausedState = null;
+  let titleObserver = null;
 
   function PseudoPlayer(button) {
     let clickFunc = function() {
@@ -57,6 +58,13 @@
     }
   }
 
+  function createTitleObserver() {
+    const titleElement = document.querySelector('head > title');
+    let observer = new window.MutationObserver(function() { self.port.emit("title", titleElement.text); });
+    observer.observe(titleElement, { subtree: true, characterData: true, childList: true });
+    return observer;
+  }
+
   function doAttach() {
     let player = document.querySelector("audio[src]:not([src='']), video[src]:not([src=''])");
     if (!player && document.querySelector("audio, video")) {
@@ -71,6 +79,7 @@
 
     window.addEventListener("playing", mediaEventHandler, true);
     window.addEventListener("pause", mediaEventHandler, true);
+    titleObserver = createTitleObserver();
 
     self.port.on("toggle", togglePausedState);
     self.port.on("query", emitPausedState);
@@ -78,6 +87,10 @@
   }
 
   function doDetach(reason) {
+    if (titleObserver) {
+      titleObserver.disconnect();
+      titleObserver = null;
+    }
     if (reason) {
       window.removeEventListener("playing", mediaEventHandler, true);
       window.removeEventListener("pause", mediaEventHandler, true);
