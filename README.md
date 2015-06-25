@@ -10,7 +10,7 @@ Work in progress. Not yet published to Mozilla repo.
 Some audio/video sites add a small 'Play' indicator to the tab title when the media is playing. Which is nice. But I always wanted to be able to click on that thing and pause the playback without switching to that tab. Good news: now I can. And so can you.
 
 ## Known Limitations
-As of version 0.9 this extension is in Beta. Means: guaranteed to have incompatibilies with some major audio/video sites.
+As of version 0.9.2 this extension is in Beta. Means: guaranteed to have incompatibilies with some major audio/video sites.
 
 ## License
 All source code in this project are licensed under the MIT license.
@@ -34,6 +34,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
-## Trademarks
-None yet.

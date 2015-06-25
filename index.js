@@ -153,6 +153,9 @@
       xulTab = null;
       delete workers[id];
     });
+    worker.port.once("disable", function () {
+      worker.destroy();
+    });
   }
 
   exports.main = function () {

@@ -65,9 +65,13 @@
     return observer;
   }
 
+  function detectMedia() {
+    return document.querySelector("audio, video");
+  }
+
   function doAttach() {
     let player = document.querySelector("audio[src]:not([src='']), video[src]:not([src=''])");
-    if (!player && document.querySelector("audio, video")) {
+    if (!player) {
       let playButton = document.querySelector(siteSpecificFixes);
       if (playButton) {
         player = new PseudoPlayer(playButton);
@@ -97,5 +101,9 @@
     }
   }
 
-  doAttach();
+  if (detectMedia()) {
+    doAttach();
+  } else {
+    self.port.emit("disable");
+  }
 })();
