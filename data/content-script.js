@@ -6,23 +6,9 @@
 (function() {
   "use strict";
 
-  const siteSpecificFixes = ".play-btn, .playbutton, .item_link_play"; // Bandcamp
-
   let currentPlayer = null;
   let currentPausedState = null;
   let titleObserver = null;
-
-  function PseudoPlayer(button) {
-    let clickFunc = function() {
-      this.paused = !this.paused;
-      button.click();
-    };
-    return {
-      play: clickFunc,
-      pause: clickFunc,
-      paused: true
-    };
-  }
 
   function emitPausedState() {
     if (currentPlayer) {
@@ -65,29 +51,34 @@
     return observer;
   }
 
-  function detectMedia() {
-    return document.querySelector("audio, video");
-  }
-
   function doAttach() {
-    let player = document.querySelector("audio[src]:not([src='']), video[src]:not([src=''])");
-    if (!player) {
-      let playButton = document.querySelector(siteSpecificFixes);
-      if (playButton) {
-        player = new PseudoPlayer(playButton);
+    let player = null;
+    let html5PlayerDetected = document.querySelector("audio, video");
+
+    if (html5PlayerDetected) {
+      player = document.querySelector("audio[src]:not([src='']), video[src]:not([src=''])");
+      player = player || window.PseudoPlayers.detectHtml5();
+    } else {
+      player = window.PseudoPlayers.detectFlash();
+      if (!player) {
+        return false;
       }
     }
-    if (player) {
-      setCurrentPlayer(player);
+
+    setCurrentPlayer(player);
+
+    if (html5PlayerDetected) {
+      window.addEventListener("playing", mediaEventHandler, true);
+      window.addEventListener("pause", mediaEventHandler, true);
     }
 
-    window.addEventListener("playing", mediaEventHandler, true);
-    window.addEventListener("pause", mediaEventHandler, true);
     titleObserver = createTitleObserver();
 
     self.port.on("toggle", togglePausedState);
     self.port.on("query", emitPausedState);
     self.port.on("detach", doDetach);
+
+    return true;
   }
 
   function doDetach(reason) {
@@ -101,9 +92,7 @@
     }
   }
 
-  if (detectMedia()) {
-    doAttach();
-  } else {
-    self.port.emit("disable");
+  if (!doAttach()) {
+    //self.port.emit("disable");
   }
 })();

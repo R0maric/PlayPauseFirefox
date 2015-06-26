@@ -11,6 +11,7 @@
 
   const { viewFor } = require("sdk/view/core");
   const { getTabId } = require("sdk/tabs/utils");
+  const self = require("sdk/self");
 
   const playSymbol = "▶︎";
   const pauseSymbol = "❚❚";
@@ -162,7 +163,10 @@
     require("sdk/page-mod").PageMod({
       include: "*", // Match everything
       attachTo: ["existing", "top"],
-      contentScriptFile: require("sdk/self").data.url("content-script.js"),
+      contentScriptFile: [
+        self.data.url("pseudo-players.js"),
+        self.data.url("content-script.js")
+      ],
       onAttach: startListening
     });
   };
