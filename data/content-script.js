@@ -6,43 +6,8 @@
 (function() {
   "use strict";
 
-  let currentPlayer = null;
-  let currentPausedState = null;
+  let pseudoPlayer = null;
   let titleObserver = null;
-
-  function emitPausedState() {
-    if (currentPlayer) {
-      self.port.emit("paused", currentPausedState);
-    }
-  }
-
-  function togglePausedState() {
-    if (currentPlayer) {
-      if (currentPausedState) {
-        currentPlayer.play();
-      } else {
-        currentPlayer.pause();
-      }
-    }
-  }
-
-  function setCurrentPlayer(player) {
-    if (!player) {
-      return;
-    }
-    if (!currentPlayer) {
-      self.port.emit("init");
-    }
-    currentPlayer = player;
-    currentPausedState = player.paused;
-    emitPausedState();
-  }
-
-  function mediaEventHandler(event) {
-    if (event && event.target) {
-      setCurrentPlayer(event.target);
-    }
-  }
 
   function createTitleObserver() {
     const titleElement = document.querySelector('head > title');
@@ -51,31 +16,27 @@
     return observer;
   }
 
-  function doAttach() {
-    let player = null;
-    let html5PlayerDetected = document.querySelector("audio, video");
-
-    if (html5PlayerDetected) {
-      player = document.querySelector("audio[src]:not([src='']), video[src]:not([src=''])");
-      player = player || window.PseudoPlayers.detectHtml5();
-    } else {
-      player = window.PseudoPlayers.detectFlash();
-      if (!player) {
-        return false;
+  function togglePlayPause() {
+    if (pseudoPlayer) {
+      if (pseudoPlayer.paused) {
+        pseudoPlayer.play();
+      } else {
+        pseudoPlayer.pause();
       }
     }
+  }
 
-    setCurrentPlayer(player);
-
-    if (html5PlayerDetected) {
-      window.addEventListener("playing", mediaEventHandler, true);
-      window.addEventListener("pause", mediaEventHandler, true);
+  function doAttach() {
+    pseudoPlayer = window.PseudoPlayers.detectPseudoPlayer();
+    if (!pseudoPlayer) {
+      return false;
     }
 
     titleObserver = createTitleObserver();
+    self.port.emit("init");
 
-    self.port.on("toggle", togglePausedState);
-    self.port.on("query", emitPausedState);
+    self.port.on("toggle", togglePlayPause);
+    self.port.on("query", function() { self.port.emit("paused", pseudoPlayer.paused); });
     self.port.on("detach", doDetach);
 
     return true;
@@ -86,13 +47,13 @@
       titleObserver.disconnect();
       titleObserver = null;
     }
-    if (reason) {
-      window.removeEventListener("playing", mediaEventHandler, true);
-      window.removeEventListener("pause", mediaEventHandler, true);
+    if (pseudoPlayer) {
+      pseudoPlayer.destroy(reason);
+      pseudoPlayer = null;
     }
   }
 
   if (!doAttach()) {
-    //self.port.emit("disable");
+    self.port.emit("disable");
   }
 })();

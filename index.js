@@ -3,7 +3,7 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: v1.0: site-specific fixes: Flash: Soundcloud, Pandora, more
+// TODO: v1.0: site-specific fixes: Flash: Soundcloud, more
 // TODO: v1.0: site-specific fixes: investigate
 
 (function() {
@@ -115,15 +115,15 @@
   }
 
   function addEventBindings(xulTab) {
-    xulTab.addEventListener("TabMove", tabMoveHandler, false);
-    xulTab.addEventListener("TabPinned", tabPinUnpinHandler, false);
-    xulTab.addEventListener("TabUnpinned", tabPinUnpinHandler, false);
+    xulTab.addEventListener("TabMove", tabMoveHandler);
+    xulTab.addEventListener("TabPinned", tabPinUnpinHandler);
+    xulTab.addEventListener("TabUnpinned", tabPinUnpinHandler);
   }
 
   function removeEventBindings(xulTab) {
-    xulTab.removeEventListener("TabMove", tabMoveHandler, false);
-    xulTab.removeEventListener("TabPinned", tabPinUnpinHandler, false);
-    xulTab.removeEventListener("TabUnpinned", tabPinUnpinHandler, false);
+    xulTab.removeEventListener("TabMove", tabMoveHandler);
+    xulTab.removeEventListener("TabPinned", tabPinUnpinHandler);
+    xulTab.removeEventListener("TabUnpinned", tabPinUnpinHandler);
   }
 
   function startListening(worker) {
