@@ -3,6 +3,7 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
+// TODO: detect state properly for Bandcamp on init
 // TODO: v1.0: site-specific fixes: Flash: Soundcloud, more
 // TODO: v1.0: site-specific fixes: investigate
 
@@ -137,6 +138,7 @@
       setTabLabelValueForTab(xulTab, xulTab.label, true);
       addPlayPauseSymbol(xulTab);
       addEventBindings(xulTab);
+      worker.port.emit("query");
     });
     worker.port.on("paused", function (paused) {
       let playPause = getPlayPauseElement(xulTab);

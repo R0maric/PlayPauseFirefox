@@ -6,17 +6,19 @@
 (function() {
   "use strict";
 
-  let pseudoPlayers = [
-    {  // Bandcamp
-      selector: ".play-btn, .playbutton, .item_link_play",
-      create: createBandcampPseudoPlayer
-    },
+  const mediaSelector = "audio, video";
+
+  const pseudoPlayers = [
     { // Pandora
       regex: /.*\.pandora\.com.*/,
       create: createPandoraPseudoPlayer
     },
+    {  // Bandcamp
+      selector: ".play-btn, .playbutton, .item_link_play",
+      create: createBandcampPseudoPlayer
+    },
     {  // Generic catch-all HTML5 media
-      selector: "audio, video",
+      selector: mediaSelector,
       create: createGenericPseudoPlayer
     }
   ];
@@ -38,6 +40,13 @@
         emitPausedState(paused);
       }
     };
+
+    if (buttons.length == 1) { // temporary fix for album pages
+      let media = document.querySelectorAll(mediaSelector);
+      if (media.length == 1 && !media[0].paused) {
+        paused = false;
+      }
+    }
 
     for (let i = 0; i < buttons.length; i++) {
       buttons[i].addEventListener("click", clickHandler);
@@ -97,6 +106,15 @@
         emitPausedState(paused);
       }
     };
+
+    // if one of the media is playing, make it the current player
+    for (let i = 0; i < players.length; i++) {
+      if (!players[i].paused) {
+        currentPlayer = players[i];
+        paused = false;
+        break;
+      }
+    }
 
     window.addEventListener("playing", mediaEventHandler, true);
     window.addEventListener("pause", mediaEventHandler, true);
