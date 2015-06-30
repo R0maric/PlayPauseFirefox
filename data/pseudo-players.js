@@ -24,7 +24,9 @@
   ];
 
   function emitPausedState(paused) {
-    self.port.emit("paused", paused);
+    if (paused !== null) {
+      self.port.emit("paused", paused);
+    }
   }
 
   function createBandcampPseudoPlayer(buttons) {
@@ -41,10 +43,17 @@
       }
     };
 
-    if (buttons.length == 1) { // temporary fix for album pages
-      let media = document.querySelectorAll(mediaSelector);
+    let media = document.querySelectorAll(mediaSelector);
+    if (buttons.length == 1) { // album page? if playing, update the state
       if (media.length == 1 && !media[0].paused) {
         paused = false;
+      }
+    } else { // front page or collection? if playing, unset the state; it will update on next click event
+      for (let i = 0; i < media.length; i++) {
+        if (!media[i].paused) {
+          paused = null;
+          break;
+        }
       }
     }
 
@@ -154,6 +163,7 @@
   }
 
   window.PseudoPlayers = {
+    emitPausedState: emitPausedState,
     detectPseudoPlayer: detectPseudoPlayer
   }
 })();
