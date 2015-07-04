@@ -13,13 +13,17 @@
       regex: /.*\.pandora\.com.*/,
       create: createPandoraPseudoPlayer
     },
-    {  // Bandcamp
-      selector: ".play-btn, .playbutton, .item_link_play",
-      create: createBandcampPseudoPlayer
+    {  // YouTube HTML5
+      selector: ".ytp-button-play, .ytp-button-pause",
+      create: createSingleButtonPseudoPlayer
     },
-    {  // Youtube Flash
+    {  // YouTube Flash
       selector: "object, embed",
       create: createYoutubeFlashPseudoPlayer
+    },
+    {  // Bandcamp
+      selector: ".play-btn, .playbutton, .item_link_play",
+      create: createSingleButtonPseudoPlayer
     },
     {  // Generic catch-all HTML5 media
       selector: mediaSelector,
@@ -33,7 +37,7 @@
     }
   }
 
-  function createBandcampPseudoPlayer(win, selector) {
+  function createSingleButtonPseudoPlayer(win, selector) {
     let buttons = win.document.querySelectorAll(selector);
     if (buttons.length == 0) {
       return null;
@@ -53,11 +57,11 @@
     };
 
     let media = win.document.querySelectorAll(mediaSelector);
-    if (buttons.length == 1) { // album page? if playing, update the state
+    if (buttons.length == 1) { // just one player on the page? if playing, update the state
       if (media.length == 1 && !media[0].paused) {
         paused = false;
       }
-    } else { // front page or collection? if playing, unset the state; it will update on next click event
+    } else { // multiple players on the page? if playing, unset the state; it will update on next click event
       for (let i = 0; i < media.length; i++) {
         if (!media[i].paused) {
           paused = null;
