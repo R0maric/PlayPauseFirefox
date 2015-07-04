@@ -73,6 +73,7 @@
     window.addEventListener("playing", mediaEventHandler, true);
     window.addEventListener("pause", mediaEventHandler, true);
 
+    //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return paused; },
       play: function() { currentButton.click(); },
@@ -106,6 +107,7 @@
     });
     observer.observe(playButton, { attributes: true, attributeFilter: ["style"] });
 
+    //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return paused; },
       play: function() { playButton.click(); },
@@ -146,22 +148,25 @@
       }
     }
 
-    let stateChangeHandler = function(newState) {
-      console.error(newState)
-    };
-    //window.addEventListener("onStateChange", stateChangeHandler, true);
-    for (let i = 0; i < players.length; i++) {
-      players[i].addEventListener("onStateChange", stateChangeHandler);
+    // "onStateChange" either isn't fired or fails to reach our code; thus, a workaround
+    function stateChangeHandler() {
+      let newState = (currentPlayer.getPlayerState() != 1);
+      if (newState != paused) {
+        paused = newState;
+        emitPausedState(paused);
+      }
     }
+    let timer = window.setInterval(stateChangeHandler, 500);
 
+    //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return paused; },
       play: function() { currentPlayer.playVideo(); },
       pause: function() { currentPlayer.pauseVideo(); },
       destroy: function(reason) {
-        //if (reason) {
-        //  window.removeEventListener("onStateChange", stateChangeHandler, true);
-        //}
+        if (reason) {
+          window.clearInterval(timer);
+        }
       }
     };
   }
@@ -193,6 +198,7 @@
     window.addEventListener("playing", mediaEventHandler, true);
     window.addEventListener("pause", mediaEventHandler, true);
 
+    //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return paused; },
       play: function() { currentPlayer.play(); },
