@@ -24,6 +24,11 @@
       playingClass: "pause",
       create: createGenericFlashPseudoPlayer
     },
+    { // Amazon Music
+      regex: /.*amazon\..*/,
+      selector: ".acs-mp3-play, .acs-mp3-pause, div.sample-button",
+      create: createSingleButtonPseudoPlayer
+    },
     {  // YouTube HTML5
       selector: ".ytp-button-play, .ytp-button-pause",
       create: createSingleButtonPseudoPlayer
