@@ -4,6 +4,7 @@
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
 // TODO: fix false positive on Facebook
+// TODO: fix SoundCloud embedded delayed load
 // TODO: strip 'stop' symbol (for Hypemachine)
 
 (function() {

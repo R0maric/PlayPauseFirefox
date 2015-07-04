@@ -13,8 +13,9 @@
       regex: /.*\.pandora\.com.*/,
       create: createPandoraPseudoPlayer
     },
-    { // SoundCloud
+    { // SoundCloud on-site
       regex: /.*soundcloud\.com.*/,
+      selector: "button.playControl",
       create: createSoundCloudPseudoPlayer
     },
     {  // YouTube HTML5
@@ -26,8 +27,12 @@
       create: createYoutubeFlashPseudoPlayer
     },
     {  // Bandcamp
-      selector: ".play-btn, .playbutton, .item_link_play",
+      selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: createSingleButtonPseudoPlayer
+    },
+    { // SoundCloud embedded
+      selector: "button.playButton",
+      create: createSoundCloudPseudoPlayer
     },
     {  // Generic catch-all HTML5 media
       selector: mediaSelector,
@@ -179,14 +184,14 @@
     };
   }
 
-  function createSoundCloudPseudoPlayer(win) {
+  function createSoundCloudPseudoPlayer(win, selector) {
     let paused = true;
-    let button = win.document.querySelector(".playControl");
+    let button = win.document.querySelector(selector);
     if (!button) {
       return null;
     }
 
-    if (button.className.indexOf("playing") == -1) {
+    if (button.className.indexOf("disabled") != -1) {
       paused = null;
     }
 

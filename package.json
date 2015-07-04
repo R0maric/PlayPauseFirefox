@@ -7,6 +7,6 @@
   "version": "0.9.7",
   "homepage": "https://github.com/DanielKamkha/PlayPauseFirefox",
   "permissions": {
-    "cross-domain-content": ["https://www.youtube.com"]
+    "cross-domain-content": ["https://www.youtube.com", "https://w.soundcloud.com/"]
   }
 }
