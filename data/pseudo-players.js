@@ -17,6 +17,10 @@
       selector: ".play-btn, .playbutton, .item_link_play",
       create: createBandcampPseudoPlayer
     },
+    {  // Youtube Flash
+      selector: "object, embed",
+      create: createYoutubeFlashPseudoPlayer
+    },
     {  // Generic catch-all HTML5 media
       selector: mediaSelector,
       create: createGenericPseudoPlayer
@@ -29,9 +33,14 @@
     }
   }
 
-  function createBandcampPseudoPlayer(buttons) {
+  function createBandcampPseudoPlayer(selector) {
+    let buttons = document.querySelectorAll(selector);
+    if (buttons.length == 0) {
+      return null;
+    }
     let paused = true;
     let currentButton = buttons[0];
+
     let clickHandler = function(event) {
       currentButton = event.target;
     };
@@ -105,7 +114,63 @@
     }
   }
 
-  function createGenericPseudoPlayer(players) {
+  function createYoutubeFlashPseudoPlayer(selector) {
+    const youtubeRegex = /.*\.youtube\.com.*/;
+    let flash = document.querySelectorAll(selector);
+    if (flash.length == 0) {
+      return null;
+    }
+    let players = [];
+    for (let i = 0; i < flash.length; i++) {
+      let sourceUrl = flash[i].tagName == "OBJECT" ? flash[i].data : flash[i].src;
+      if (sourceUrl && youtubeRegex.test(sourceUrl)) {
+        let wrappedObject = flash[i].wrappedJSObject;
+        if (wrappedObject && wrappedObject.getPlayerState) {
+          players.push(wrappedObject);
+        }
+      }
+    }
+    if (players.length == 0) {
+      return null;
+    }
+
+    let paused = true;
+    let currentPlayer = players[0];
+
+    // if one of the media is playing, make it the current player
+    for (let i = 0; i < players.length; i++) {
+      if (players[i].getPlayerState() == 1) {
+        currentPlayer = players[i];
+        paused = false;
+        break;
+      }
+    }
+
+    let stateChangeHandler = function(newState) {
+      console.error(newState)
+    };
+    //window.addEventListener("onStateChange", stateChangeHandler, true);
+    for (let i = 0; i < players.length; i++) {
+      players[i].addEventListener("onStateChange", stateChangeHandler);
+    }
+
+    return {
+      get paused() { return paused; },
+      play: function() { currentPlayer.playVideo(); },
+      pause: function() { currentPlayer.pauseVideo(); },
+      destroy: function(reason) {
+        //if (reason) {
+        //  window.removeEventListener("onStateChange", stateChangeHandler, true);
+        //}
+      }
+    };
+  }
+
+  function createGenericPseudoPlayer(selector) {
+    let players = document.querySelectorAll(selector);
+    if (players.length == 0) {
+      return null;
+    }
     let paused = true;
     let currentPlayer = players[0];
     let mediaEventHandler = function(event) {
@@ -145,15 +210,8 @@
     for (let i = 0; i < pseudoPlayers.length; i++) {
       let pseudoPlayer = pseudoPlayers[i];
       let player = null;
-      if (pseudoPlayer.selector) {
-        let elements = document.querySelectorAll(pseudoPlayer.selector);
-        if (elements.length > 0) {
-          player = pseudoPlayer.create(elements);
-        }
-      } else {
-        if (pseudoPlayer.regex.test(window.location.href)) {
-          player = pseudoPlayer.create();
-        }
+      if (!pseudoPlayer.regex || pseudoPlayer.regex.test(window.location.href)) {
+        player = pseudoPlayer.create(pseudoPlayer.selector);
       }
       if (player) {
         return player;

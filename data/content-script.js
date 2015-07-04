@@ -36,7 +36,9 @@
     self.port.emit("init");
 
     self.port.on("toggle", togglePlayPause);
-    self.port.on("query", function() { window.PseudoPlayers.emitPausedState(pseudoPlayer.paused); });
+    self.port.on("query", function() {
+      window.PseudoPlayers.emitPausedState(pseudoPlayer.paused);
+    });
     self.port.on("detach", doDetach);
 
     return true;

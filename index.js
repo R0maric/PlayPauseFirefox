@@ -150,10 +150,12 @@
       setTabLabelValueForTab(xulTab, title, true);
     });
     worker.on("detach", function () {
-      removeEventBindings(xulTab);
-      removePlayPauseSymbol(xulTab);
-      setTabLabelValueForTab(xulTab, sdkTab.title, false);
-      xulTab = null;
+      if (xulTab) {
+        removeEventBindings(xulTab);
+        removePlayPauseSymbol(xulTab);
+        setTabLabelValueForTab(xulTab, sdkTab.title, false);
+        xulTab = null;
+      }
       delete workers[id];
     });
     worker.port.once("disable", function () {
