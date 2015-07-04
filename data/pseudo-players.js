@@ -13,6 +13,10 @@
       regex: /.*\.pandora\.com.*/,
       create: createPandoraPseudoPlayer
     },
+    { // SoundCloud
+      regex: /.*soundcloud\.com.*/,
+      create: createSoundCloudPseudoPlayer
+    },
     {  // YouTube HTML5
       selector: ".ytp-button-play, .ytp-button-pause",
       create: createSingleButtonPseudoPlayer
@@ -173,6 +177,32 @@
         }
       }
     };
+  }
+
+  function createSoundCloudPseudoPlayer(win) {
+    let paused = true;
+    let button = win.document.querySelector(".playControl");
+    if (!button) {
+      return null;
+    }
+
+    if (button.className.indexOf("playing") == -1) {
+      paused = null;
+    }
+
+    let observer = new MutationObserver(function() {
+      paused = (button.className.indexOf("playing") == -1);
+      emitPausedState(paused);
+    });
+    observer.observe(button, { attributes: true, attributeFilter: ["class"] });
+
+    //noinspection JSUnusedGlobalSymbols
+    return {
+      get paused() { return paused; },
+      play: function() { button.click(); },
+      pause: function() { button.click(); },
+      destroy: function() { observer.disconnect(); }
+    }
   }
 
   function createGenericPseudoPlayer(win, selector) {
