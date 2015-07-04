@@ -33,8 +33,8 @@
     }
   }
 
-  function createBandcampPseudoPlayer(selector) {
-    let buttons = document.querySelectorAll(selector);
+  function createBandcampPseudoPlayer(win, selector) {
+    let buttons = win.document.querySelectorAll(selector);
     if (buttons.length == 0) {
       return null;
     }
@@ -52,7 +52,7 @@
       }
     };
 
-    let media = document.querySelectorAll(mediaSelector);
+    let media = win.document.querySelectorAll(mediaSelector);
     if (buttons.length == 1) { // album page? if playing, update the state
       if (media.length == 1 && !media[0].paused) {
         paused = false;
@@ -70,8 +70,8 @@
       buttons[i].addEventListener("click", clickHandler);
     }
 
-    window.addEventListener("playing", mediaEventHandler, true);
-    window.addEventListener("pause", mediaEventHandler, true);
+    win.addEventListener("playing", mediaEventHandler, true);
+    win.addEventListener("pause", mediaEventHandler, true);
 
     //noinspection JSUnusedGlobalSymbols
     return {
@@ -80,8 +80,8 @@
       pause: function() { currentButton.click(); },
       destroy: function(reason) {
         if (reason) {
-          window.removeEventListener("playing", mediaEventHandler, true);
-          window.removeEventListener("pause", mediaEventHandler, true);
+          win.removeEventListener("playing", mediaEventHandler, true);
+          win.removeEventListener("pause", mediaEventHandler, true);
         }
         for (let i = 0; i < buttons.length; i++) {
           let button = buttons[i];
@@ -93,10 +93,10 @@
     };
   }
 
-  function createPandoraPseudoPlayer() {
+  function createPandoraPseudoPlayer(win) {
     let paused = true;
-    let playButton = document.querySelector(".playButton");
-    let pauseButton = document.querySelector(".pauseButton");
+    let playButton = win.document.querySelector(".playButton");
+    let pauseButton = win.document.querySelector(".pauseButton");
     if (!playButton || !pauseButton) {
       return null;
     }
@@ -116,9 +116,9 @@
     }
   }
 
-  function createYoutubeFlashPseudoPlayer(selector) {
+  function createYoutubeFlashPseudoPlayer(win, selector) {
     const youtubeRegex = /.*\.youtube\.com.*/;
-    let flash = document.querySelectorAll(selector);
+    let flash = win.document.querySelectorAll(selector);
     if (flash.length == 0) {
       return null;
     }
@@ -156,7 +156,7 @@
         emitPausedState(paused);
       }
     }
-    let timer = window.setInterval(stateChangeHandler, 500);
+    let timer = win.setInterval(stateChangeHandler, 500);
 
     //noinspection JSUnusedGlobalSymbols
     return {
@@ -165,14 +165,14 @@
       pause: function() { currentPlayer.pauseVideo(); },
       destroy: function(reason) {
         if (reason) {
-          window.clearInterval(timer);
+          win.clearInterval(timer);
         }
       }
     };
   }
 
-  function createGenericPseudoPlayer(selector) {
-    let players = document.querySelectorAll(selector);
+  function createGenericPseudoPlayer(win, selector) {
+    let players = win.document.querySelectorAll(selector);
     if (players.length == 0) {
       return null;
     }
@@ -195,8 +195,8 @@
       }
     }
 
-    window.addEventListener("playing", mediaEventHandler, true);
-    window.addEventListener("pause", mediaEventHandler, true);
+    win.addEventListener("playing", mediaEventHandler, true);
+    win.addEventListener("pause", mediaEventHandler, true);
 
     //noinspection JSUnusedGlobalSymbols
     return {
@@ -205,19 +205,31 @@
       pause: function() { currentPlayer.pause(); },
       destroy: function(reason) {
         if (reason) {
-          window.removeEventListener("playing", mediaEventHandler, true);
-          window.removeEventListener("pause", mediaEventHandler, true);
+          win.removeEventListener("playing", mediaEventHandler, true);
+          win.removeEventListener("pause", mediaEventHandler, true);
         }
       }
     };
   }
 
-  function detectPseudoPlayer() {
+  function detectPseudoPlayer(win) {
+    // Test for win.document access, fail gracefully for unexpected iframes
+    try {
+      //noinspection JSUnusedLocalSymbols
+      let dummy = win.document;
+    } catch (exception) {
+      if (exception.message.toLowerCase().indexOf('permission denied') !== -1) {
+        return null;
+      } else {
+        throw exception;
+      }
+    }
+
     for (let i = 0; i < pseudoPlayers.length; i++) {
       let pseudoPlayer = pseudoPlayers[i];
       let player = null;
       if (!pseudoPlayer.regex || pseudoPlayer.regex.test(window.location.href)) {
-        player = pseudoPlayer.create(pseudoPlayer.selector);
+        player = pseudoPlayer.create(win, pseudoPlayer.selector);
       }
       if (player) {
         return player;

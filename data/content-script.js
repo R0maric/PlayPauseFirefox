@@ -11,7 +11,7 @@
 
   function createTitleObserver() {
     const titleElement = document.querySelector('head > title');
-    let observer = new window.MutationObserver(function() { self.port.emit("title", titleElement.text); });
+    let observer = new MutationObserver(function() { self.port.emit("title", titleElement.text); });
     observer.observe(titleElement, { subtree: true, characterData: true, childList: true });
     return observer;
   }
@@ -27,7 +27,16 @@
   }
 
   function doAttach() {
-    pseudoPlayer = window.PseudoPlayers.detectPseudoPlayer();
+    pseudoPlayer = PseudoPlayers.detectPseudoPlayer(window);
+    if (!pseudoPlayer) {
+      let iframes = document.querySelectorAll("iframe");
+      for (let i = 0; i < iframes.length; i++) {
+        pseudoPlayer = PseudoPlayers.detectPseudoPlayer(iframes[i].contentWindow);
+        if (pseudoPlayer) {
+          break;
+        }
+      }
+    }
     if (!pseudoPlayer) {
       return false;
     }
@@ -37,7 +46,7 @@
 
     self.port.on("toggle", togglePlayPause);
     self.port.on("query", function() {
-      window.PseudoPlayers.emitPausedState(pseudoPlayer.paused);
+      PseudoPlayers.emitPausedState(pseudoPlayer.paused);
     });
     self.port.on("detach", doDetach);
 
