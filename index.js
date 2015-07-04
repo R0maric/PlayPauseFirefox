@@ -3,8 +3,8 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: fix false positive on Facebook
 // TODO: fix SoundCloud embedded delayed load
+// TODO: Twitch.tv MutationObserver
 // TODO: add option for experimental sites
 
 (function() {
@@ -21,7 +21,7 @@
   const stopSymbol = "◼";
   const stripSymbols = [playSymbol, playSymbolAlt, playSymbolLarge, stopSymbol];
 
-  const experimentalSupport = [/.*spotify\.com.*/, /.*allmusic\.com.*/];
+  const experimentalSupport = [/.*spotify\.com.*/, /.*allmusic\.com.*/, /.*facebook\.com.*/];
 
   let workers = {}; // workers cache
 

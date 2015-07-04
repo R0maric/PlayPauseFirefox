@@ -40,7 +40,17 @@
     },
     {  // YouTube Flash
       selector: "object, embed",
-      create: createYoutubeFlashPseudoPlayer
+      srcRegex: /.*\.youtube\.com.*/,
+      stateGetterName: "getPlayerState",
+      playStateValue: 1,
+      create: createFlashDirectAccessPseudoPlayer
+    },
+    {  // Twitch.tv
+      selector: "object, embed",
+      srcRegex: /.*TwitchPlayer\.swf.*/,
+      stateGetterName: "isPaused",
+      playStateValue: false,
+      create: createFlashDirectAccessPseudoPlayer
     },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
@@ -145,16 +155,20 @@
     }
   }
 
-  function createYoutubeFlashPseudoPlayer(win, selector) {
-    const youtubeRegex = /.*\.youtube\.com.*/;
+  function createFlashDirectAccessPseudoPlayer(win, selector, playerData) {
     let flash = win.document.querySelectorAll(selector);
     if (flash.length == 0) {
       return null;
     }
+
+    const srcRegex = playerData.srcRegex;
+    const stateGetterName = playerData.stateGetterName;
+    const playStateValue = playerData.playStateValue;
+
     let players = [];
     for (let i = 0; i < flash.length; i++) {
       let sourceUrl = flash[i].tagName == "OBJECT" ? flash[i].data : flash[i].src;
-      if (sourceUrl && youtubeRegex.test(sourceUrl) && flash[i].wrappedJSObject) {
+      if (sourceUrl && srcRegex.test(sourceUrl) && flash[i].wrappedJSObject) {
         players.push(flash[i].wrappedJSObject);
       }
     }
@@ -167,9 +181,9 @@
 
     // if one of the media is playing, make it the current player
     for (let i = 0; i < players.length; i++) {
-      if (players[i].getPlayerState) {
+      if (players[i][stateGetterName]) {
         paused = true;
-        if (players[i].getPlayerState() == 1) {
+        if (players[i][stateGetterName]() == playStateValue) {
           currentPlayer = players[i];
           paused = false;
           break;
@@ -179,10 +193,12 @@
 
     // "onStateChange" either isn't fired or fails to reach our code; thus, a workaround
     function stateChangeHandler() {
-      let newState = (currentPlayer.getPlayerState() != 1);
-      if (newState != paused) {
-        paused = newState;
-        emitPausedState(paused);
+      if (currentPlayer[stateGetterName]) {
+        let newState = (currentPlayer[stateGetterName]() != playStateValue);
+        if (newState != paused) {
+          paused = newState;
+          emitPausedState(paused);
+        }
       }
     }
     let timer = win.setInterval(stateChangeHandler, 500);
@@ -200,7 +216,7 @@
     };
   }
 
-  function createGenericFlashPseudoPlayer(win, selector, playingClass) {
+  function createGenericFlashPseudoPlayer(win, selector, playerData) {
     let paused = true;
     let button = win.document.querySelector(selector);
     if (!button) {
@@ -211,7 +227,7 @@
       paused = null;
     }
 
-    playingClass = playingClass || "playing";
+    let playingClass = playerData.playingClass || "playing";
     let observer = new MutationObserver(function() {
       paused = (button.className.indexOf(playingClass) == -1);
       emitPausedState(paused);
@@ -285,7 +301,7 @@
       let pseudoPlayer = pseudoPlayers[i];
       let player = null;
       if (!pseudoPlayer.regex || pseudoPlayer.regex.test(window.location.href)) {
-        player = pseudoPlayer.create(win, pseudoPlayer.selector, pseudoPlayer.playingClass);
+        player = pseudoPlayer.create(win, pseudoPlayer.selector, pseudoPlayer);
       }
       if (player) {
         return player;
