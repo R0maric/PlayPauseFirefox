@@ -5,6 +5,7 @@
 
 // TODO: fix false positive on Facebook
 // TODO: fix SoundCloud embedded delayed load
+// TODO: add option for experimental sites
 
 (function() {
   "use strict";
@@ -19,6 +20,8 @@
   const playSymbolLarge = "►";
   const stopSymbol = "◼";
   const stripSymbols = [playSymbol, playSymbolAlt, playSymbolLarge, stopSymbol];
+
+  const experimentalSupport = [/.*spotify\.com.*/, /.*allmusic\.com.*/];
 
   let workers = {}; // workers cache
 
@@ -167,6 +170,7 @@
   exports.main = function () {
     require("sdk/page-mod").PageMod({
       include: "*", // Match everything
+      exclude: experimentalSupport,
       attachTo: ["existing", "top"],
       contentScriptFile: [
         self.data.url("pseudo-players.js"),

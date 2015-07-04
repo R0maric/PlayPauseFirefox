@@ -29,6 +29,11 @@
       selector: ".acs-mp3-play, .acs-mp3-pause, div.sample-button",
       create: createSingleButtonPseudoPlayer
     },
+    { // AllMusic
+      regex: /.*allmusic\.com.*/,
+      selector: "a.audio-player",
+      create: createGenericFlashPseudoPlayer
+    },
     {  // YouTube HTML5
       selector: ".ytp-button-play, .ytp-button-pause",
       create: createSingleButtonPseudoPlayer
