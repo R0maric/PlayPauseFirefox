@@ -125,26 +125,26 @@
     let players = [];
     for (let i = 0; i < flash.length; i++) {
       let sourceUrl = flash[i].tagName == "OBJECT" ? flash[i].data : flash[i].src;
-      if (sourceUrl && youtubeRegex.test(sourceUrl)) {
-        let wrappedObject = flash[i].wrappedJSObject;
-        if (wrappedObject && wrappedObject.getPlayerState) {
-          players.push(wrappedObject);
-        }
+      if (sourceUrl && youtubeRegex.test(sourceUrl) && flash[i].wrappedJSObject) {
+        players.push(flash[i].wrappedJSObject);
       }
     }
     if (players.length == 0) {
       return null;
     }
 
-    let paused = true;
+    let paused = null;
     let currentPlayer = players[0];
 
     // if one of the media is playing, make it the current player
     for (let i = 0; i < players.length; i++) {
-      if (players[i].getPlayerState() == 1) {
-        currentPlayer = players[i];
-        paused = false;
-        break;
+      if (players[i].getPlayerState) {
+        paused = true;
+        if (players[i].getPlayerState() == 1) {
+          currentPlayer = players[i];
+          paused = false;
+          break;
+        }
       }
     }
 
