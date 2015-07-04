@@ -5,7 +5,6 @@
 
 // TODO: fix false positive on Facebook
 // TODO: fix SoundCloud embedded delayed load
-// TODO: strip 'stop' symbol (for Hypemachine)
 
 (function() {
   "use strict";
@@ -17,7 +16,9 @@
   const playSymbol = "▶︎";
   const pauseSymbol = "❚❚";
   const playSymbolAlt = "▶";
-  const stripSymbols = [playSymbol, playSymbolAlt];
+  const playSymbolLarge = "►";
+  const stopSymbol = "◼";
+  const stripSymbols = [playSymbol, playSymbolAlt, playSymbolLarge, stopSymbol];
 
   let workers = {}; // workers cache
 

@@ -16,7 +16,13 @@
     { // SoundCloud on-site
       regex: /.*soundcloud\.com.*/,
       selector: "button.playControl",
-      create: createSoundCloudPseudoPlayer
+      create: createGenericFlashPseudoPlayer
+    },
+    { // Hype Machine
+      regex: /.*hypem\.com.*/,
+      selector: "#playerPlay",
+      playingClass: "pause",
+      create: createGenericFlashPseudoPlayer
     },
     {  // YouTube HTML5
       selector: ".ytp-button-play, .ytp-button-pause",
@@ -32,7 +38,7 @@
     },
     { // SoundCloud embedded
       selector: "button.playButton",
-      create: createSoundCloudPseudoPlayer
+      create: createGenericFlashPseudoPlayer
     },
     {  // Generic catch-all HTML5 media
       selector: mediaSelector,
@@ -184,7 +190,7 @@
     };
   }
 
-  function createSoundCloudPseudoPlayer(win, selector) {
+  function createGenericFlashPseudoPlayer(win, selector, playingClass) {
     let paused = true;
     let button = win.document.querySelector(selector);
     if (!button) {
@@ -195,8 +201,9 @@
       paused = null;
     }
 
+    playingClass = playingClass || "playing";
     let observer = new MutationObserver(function() {
-      paused = (button.className.indexOf("playing") == -1);
+      paused = (button.className.indexOf(playingClass) == -1);
       emitPausedState(paused);
     });
     observer.observe(button, { attributes: true, attributeFilter: ["class"] });
@@ -268,7 +275,7 @@
       let pseudoPlayer = pseudoPlayers[i];
       let player = null;
       if (!pseudoPlayer.regex || pseudoPlayer.regex.test(window.location.href)) {
-        player = pseudoPlayer.create(win, pseudoPlayer.selector);
+        player = pseudoPlayer.create(win, pseudoPlayer.selector, pseudoPlayer.playingClass);
       }
       if (player) {
         return player;
