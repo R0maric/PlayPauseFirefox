@@ -3,6 +3,7 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
+// TODO: LinkedIn embedded video close button bug: many tabs so close button gets hidden
 // TODO: fix SoundCloud embedded delayed load
 // TODO: Twitch.tv MutationObserver
 // TODO: add option for experimental sites
@@ -20,6 +21,8 @@
   const playSymbolLarge = "►";
   const stopSymbol = "◼";
   const stripSymbols = [playSymbol, playSymbolAlt, playSymbolLarge, stopSymbol];
+
+  const fixTabAttributes = ["pinned", "selected", "visuallyselected"];
 
   const experimentalSupport = [/.*spotify\.com.*/, /.*allmusic\.com.*/, /.*facebook\.com.*/];
 
@@ -100,7 +103,7 @@
     addPlayPauseSymbol(xulTab);
   }
 
-  function tabPinUnpinHandler(event) {
+  function tabModifiedHandler(event) {
     let xulTab = event.target;
     let chromeDocument = xulTab.ownerDocument;
 
@@ -112,23 +115,28 @@
     if (!closeButton) {
       return;
     }
-    if (xulTab.pinned) {
-      closeButton.setAttribute("pinned", "true");
-    } else {
-      closeButton.removeAttribute("pinned");
-    }
+
+    fixTabAttributes.forEach(function(attribute) {
+      if (xulTab[attribute]) {
+        closeButton.setAttribute(attribute, "true");
+      } else {
+        closeButton.removeAttribute(attribute);
+      }
+    });
   }
 
   function addEventBindings(xulTab) {
     xulTab.addEventListener("TabMove", tabMoveHandler);
-    xulTab.addEventListener("TabPinned", tabPinUnpinHandler);
-    xulTab.addEventListener("TabUnpinned", tabPinUnpinHandler);
+    xulTab.addEventListener("TabPinned", tabModifiedHandler);
+    xulTab.addEventListener("TabUnpinned", tabModifiedHandler);
+    xulTab.addEventListener("TabAttrModified", tabModifiedHandler);
   }
 
   function removeEventBindings(xulTab) {
     xulTab.removeEventListener("TabMove", tabMoveHandler);
-    xulTab.removeEventListener("TabPinned", tabPinUnpinHandler);
-    xulTab.removeEventListener("TabUnpinned", tabPinUnpinHandler);
+    xulTab.removeEventListener("TabPinned", tabModifiedHandler);
+    xulTab.removeEventListener("TabUnpinned", tabModifiedHandler);
+    xulTab.removeEventListener("TabAttrModified", tabModifiedHandler);
   }
 
   function startListening(worker) {
