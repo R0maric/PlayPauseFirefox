@@ -3,21 +3,23 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: LinkedIn embedded video close button bug: many tabs so close button gets hidden
-// TODO: fix SoundCloud embedded delayed load
+// TODO: make do-embeds options work without reload
+// TODO: YouTube IFrame multiple embeds
 // TODO: Twitch.tv MutationObserver
-// TODO: add option for experimental sites
+// TODO: fix SoundCloud embedded delayed load
+// TODO: add option for experimental sites (default: false)
 
 (function() {
   "use strict";
 
   const { viewFor } = require("sdk/view/core");
   const { getTabId } = require("sdk/tabs/utils");
+  const simplePrefs = require("sdk/simple-prefs");
   const self = require("sdk/self");
 
-  const playSymbol = "▶︎";
+  const playSymbol = "▶";
   const pauseSymbol = "❚❚";
-  const playSymbolAlt = "▶";
+  const playSymbolAlt = "▶︎";
   const playSymbolLarge = "►";
   const stopSymbol = "◼";
   const stripSymbols = [playSymbol, playSymbolAlt, playSymbolLarge, stopSymbol];
@@ -146,11 +148,19 @@
 
     workers[id] = worker;
 
+    worker.port.once("options", function () {
+      worker.port.emit("options", {
+        doEmbeds: simplePrefs.prefs["do-embeds"]
+      });
+    });
     worker.port.once("init", function () {
       setTabLabelValueForTab(xulTab, xulTab.label, true);
       addPlayPauseSymbol(xulTab);
       addEventBindings(xulTab);
-      worker.port.emit("query");
+      worker.port.emit("query", 0);
+    });
+    worker.port.on("stateChanged", function (id) {
+      worker.port.emit("query", id);
     });
     worker.port.on("paused", function (paused) {
       let playPause = getPlayPauseElement(xulTab);

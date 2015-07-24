@@ -6,8 +6,10 @@
 (function() {
   "use strict";
 
-  let pseudoPlayer = null;
+  let playersList = null;
+  let activePlayer = null;
   let titleObserver = null;
+  let nextPlayerId = 0;
 
   function createTitleObserver() {
     const titleElement = document.querySelector('head > title');
@@ -17,40 +19,74 @@
   }
 
   function togglePlayPause() {
-    if (pseudoPlayer) {
-      if (pseudoPlayer.paused) {
-        pseudoPlayer.play();
+    let paused = getPausedState();
+    if (paused !== null) {
+      if (paused) {
+        activePlayer = activePlayer || playersList[0];
+        activePlayer.play();
       } else {
-        pseudoPlayer.pause();
+        playersList.forEach(function(player) { player.pause(); });
       }
     }
   }
 
-  function doAttach() {
-    pseudoPlayer = PseudoPlayers.detectPseudoPlayer(window);
-    if (!pseudoPlayer) {
-      let iframes = document.querySelectorAll("iframe");
-      for (let i = 0; i < iframes.length; i++) {
-        pseudoPlayer = PseudoPlayers.detectPseudoPlayer(iframes[i].contentWindow);
-        if (pseudoPlayer) {
-          break;
-        }
+  function getPausedState() {
+    if (playersList.length == 0) {
+      return null;
+    }
+    // Accumulated 'paused' value:
+    // null if all players are in null state,
+    // true if all players are in paused state,
+    // false otherwise
+    return playersList.reduce(function(acc, player) {
+      let paused = player.paused;
+      if (paused === null) {
+        return acc;
+      }
+      if (acc === null) {
+        return paused;
+      }
+      return acc && paused;
+    }, null);
+  }
+
+  function emitPausedState(id) {
+    let paused = getPausedState();
+    if (paused !== null) {
+      if (!paused) {
+        activePlayer = playersList[id];
+      }
+      self.port.emit("paused", paused);
+    }
+  }
+
+  function doAttach(options) {
+    PseudoPlayers.options = options;
+    playersList = [];
+    let player = PseudoPlayers.detectPseudoPlayer(nextPlayerId, window);
+    if (player) {
+      ++nextPlayerId;
+      playersList.push(player);
+    }
+    let iframes = document.querySelectorAll("iframe");
+    for (let i = 0; i < iframes.length; i++) {
+      player = PseudoPlayers.detectPseudoPlayer(nextPlayerId, iframes[i].contentWindow);
+      if (player) {
+        ++nextPlayerId;
+        playersList.push(player);
       }
     }
-    if (!pseudoPlayer) {
-      return false;
+    if (playersList.length == 0) {
+      self.port.emit("disable");
+      return;
     }
 
     titleObserver = createTitleObserver();
     self.port.emit("init");
 
     self.port.on("toggle", togglePlayPause);
-    self.port.on("query", function() {
-      PseudoPlayers.emitPausedState(pseudoPlayer.paused);
-    });
+    self.port.on("query", emitPausedState);
     self.port.on("detach", doDetach);
-
-    return true;
   }
 
   function doDetach(reason) {
@@ -58,13 +94,12 @@
       titleObserver.disconnect();
       titleObserver = null;
     }
-    if (pseudoPlayer) {
-      pseudoPlayer.destroy(reason);
-      pseudoPlayer = null;
+    if (playersList) {
+      playersList.forEach(function(player) { player.destroy(reason); });
+      playersList = null;
     }
   }
 
-  if (!doAttach()) {
-    self.port.emit("disable");
-  }
+  self.port.once("options", doAttach);
+  self.port.emit("options");
 })();

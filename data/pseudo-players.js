@@ -8,7 +8,7 @@
 
   const mediaSelector = "audio, video";
 
-  const pseudoPlayers = [
+  const generalPlayers = [
     { // Pandora
       regex: /.*\.pandora\.com.*/,
       create: createPandoraPseudoPlayer
@@ -34,6 +34,37 @@
       selector: "a.audio-player",
       create: createGenericFlashPseudoPlayer
     },
+    {  // Bandcamp
+      selector: "a.play-btn, div.playbutton, span.item_link_play",
+      create: createSingleButtonPseudoPlayer
+    }
+  ];
+
+  const nonEmbedPlayers = [
+    {  // YouTube HTML5 on-site (or on Last.fm)
+      regex: /.*(youtube\.com|last\.fm).*/,
+      selector: ".ytp-button-play, .ytp-button-pause",
+      create: createSingleButtonPseudoPlayer
+    },
+    {  // YouTube Flash on-site  (or on Last.fm)
+      regex: /.*(youtube\.com|last\.fm).*/,
+      selector: "object, embed",
+      srcRegex: /.*\.youtube\.com.*/,
+      stateGetterName: "getPlayerState",
+      playStateValue: 1,
+      create: createFlashDirectAccessPseudoPlayer
+    },
+    {  // Twitch.tv on-site
+      regex: /.*twitch\.tv.*/,
+      selector: "object, embed",
+      srcRegex: /.*TwitchPlayer\.swf.*/,
+      stateGetterName: "isPaused",
+      playStateValue: false,
+      create: createFlashDirectAccessPseudoPlayer
+    }
+  ];
+
+  const embedPlayers = [
     {  // YouTube HTML5
       selector: ".ytp-button-play, .ytp-button-pause",
       create: createSingleButtonPseudoPlayer
@@ -52,10 +83,6 @@
       playStateValue: false,
       create: createFlashDirectAccessPseudoPlayer
     },
-    {  // Bandcamp
-      selector: "a.play-btn, div.playbutton, span.item_link_play",
-      create: createSingleButtonPseudoPlayer
-    },
     { // SoundCloud embedded
       selector: "button.playButton",
       create: createGenericFlashPseudoPlayer
@@ -66,13 +93,11 @@
     }
   ];
 
-  function emitPausedState(paused) {
-    if (paused !== null) {
-      self.port.emit("paused", paused);
-    }
+  function emitStateChanged(id) {
+    self.port.emit("stateChanged", id); // TODO: assign ids to players on creation
   }
 
-  function createSingleButtonPseudoPlayer(win, selector) {
+  function createSingleButtonPseudoPlayer(id, win, selector) {
     let buttons = win.document.querySelectorAll(selector);
     if (buttons.length == 0) {
       return null;
@@ -87,7 +112,7 @@
       let player = event.target;
       if (player) {
         paused = player.paused;
-        emitPausedState(paused);
+        emitStateChanged(id);
       }
     };
 
@@ -132,7 +157,7 @@
     };
   }
 
-  function createPandoraPseudoPlayer(win) {
+  function createPandoraPseudoPlayer(id, win) {
     let paused = true;
     let playButton = win.document.querySelector(".playButton");
     let pauseButton = win.document.querySelector(".pauseButton");
@@ -142,7 +167,7 @@
 
     let observer = new MutationObserver(function() {
       paused = (playButton.style.display != "none");
-      emitPausedState(paused);
+      emitStateChanged(id);
     });
     observer.observe(playButton, { attributes: true, attributeFilter: ["style"] });
 
@@ -155,7 +180,7 @@
     }
   }
 
-  function createFlashDirectAccessPseudoPlayer(win, selector, playerData) {
+  function createFlashDirectAccessPseudoPlayer(id, win, selector, playerData) {
     let flash = win.document.querySelectorAll(selector);
     if (flash.length == 0) {
       return null;
@@ -197,7 +222,7 @@
         let newState = (currentPlayer[stateGetterName]() != playStateValue);
         if (newState != paused) {
           paused = newState;
-          emitPausedState(paused);
+          emitStateChanged(id);
         }
       }
     }
@@ -216,7 +241,7 @@
     };
   }
 
-  function createGenericFlashPseudoPlayer(win, selector, playerData) {
+  function createGenericFlashPseudoPlayer(id, win, selector, playerData) {
     let paused = true;
     let button = win.document.querySelector(selector);
     if (!button) {
@@ -230,7 +255,7 @@
     let playingClass = playerData.playingClass || "playing";
     let observer = new MutationObserver(function() {
       paused = (button.className.indexOf(playingClass) == -1);
-      emitPausedState(paused);
+      emitStateChanged(id);
     });
     observer.observe(button, { attributes: true, attributeFilter: ["class"] });
 
@@ -243,7 +268,7 @@
     }
   }
 
-  function createGenericPseudoPlayer(win, selector) {
+  function createGenericPseudoPlayer(id, win, selector) {
     let players = win.document.querySelectorAll(selector);
     if (players.length == 0) {
       return null;
@@ -254,7 +279,7 @@
       let player = event.target;
       if (player) {
         paused = player.paused;
-        emitPausedState(paused);
+        emitStateChanged(id);
       }
     };
 
@@ -284,7 +309,7 @@
     };
   }
 
-  function detectPseudoPlayer(win) {
+  function detectPseudoPlayer(id, win) {
     // Test for win.document access, fail gracefully for unexpected iframes
     try {
       //noinspection JSUnusedLocalSymbols
@@ -297,11 +322,12 @@
       }
     }
 
+    let pseudoPlayers = generalPlayers.concat(window.PseudoPlayers.options.doEmbeds ? embedPlayers : nonEmbedPlayers);
     for (let i = 0; i < pseudoPlayers.length; i++) {
       let pseudoPlayer = pseudoPlayers[i];
       let player = null;
       if (!pseudoPlayer.regex || pseudoPlayer.regex.test(window.location.href)) {
-        player = pseudoPlayer.create(win, pseudoPlayer.selector, pseudoPlayer);
+        player = pseudoPlayer.create(id, win, pseudoPlayer.selector, pseudoPlayer);
       }
       if (player) {
         return player;
@@ -311,7 +337,7 @@
   }
 
   window.PseudoPlayers = {
-    emitPausedState: emitPausedState,
+    options: {},
     detectPseudoPlayer: detectPseudoPlayer
   }
 })();
