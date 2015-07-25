@@ -3,9 +3,8 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: make do-embeds options work without reload
-// TODO: YouTube IFrame multiple embeds
 // TODO: Twitch.tv MutationObserver
+// TODO: make do-embeds options work without reload
 // TODO: fix SoundCloud embedded delayed load
 // TODO: add option for experimental sites (default: false)
 
@@ -157,7 +156,7 @@
       setTabLabelValueForTab(xulTab, xulTab.label, true);
       addPlayPauseSymbol(xulTab);
       addEventBindings(xulTab);
-      worker.port.emit("query", 0);
+      worker.port.emit("query");
     });
     worker.port.on("stateChanged", function (id) {
       worker.port.emit("query", id);

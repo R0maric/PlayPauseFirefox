@@ -53,7 +53,7 @@
   function emitPausedState(id) {
     let paused = getPausedState();
     if (paused !== null) {
-      if (!paused) {
+      if (!paused && id !== undefined) {
         activePlayer = playersList[id];
       }
       self.port.emit("paused", paused);

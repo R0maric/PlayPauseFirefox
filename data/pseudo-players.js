@@ -140,8 +140,8 @@
     //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return paused; },
-      play: function() { currentButton.click(); },
-      pause: function() { currentButton.click(); },
+      play: function() { if (this.paused) { currentButton.click(); } },
+      pause: function() { if (!this.paused) { currentButton.click(); } },
       destroy: function(reason) {
         if (reason) {
           win.removeEventListener("playing", mediaEventHandler, true);
@@ -262,8 +262,8 @@
     //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return paused; },
-      play: function() { button.click(); },
-      pause: function() { button.click(); },
+      play: function() { if (this.paused) { button.click(); } },
+      pause: function() { if (!this.paused) { button.click(); } },
       destroy: function() { observer.disconnect(); }
     }
   }
