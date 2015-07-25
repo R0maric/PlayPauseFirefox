@@ -3,7 +3,7 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: Twitch.tv MutationObserver
+// TODO: MutationObserver: rdio, 8tracks, Twitch.tv
 // TODO: make do-embeds options work without reload
 // TODO: fix SoundCloud embedded delayed load
 // TODO: add option for experimental sites (default: false)
@@ -142,6 +142,10 @@
 
   function startListening(worker) {
     let sdkTab = worker.tab;
+    if (!sdkTab) {
+      worker.destroy();
+      return;
+    }
     let xulTab = viewFor(sdkTab);
     let id = sdkTab.id;
 

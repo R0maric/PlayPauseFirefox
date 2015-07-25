@@ -11,7 +11,9 @@
   const generalPlayers = [
     { // Pandora
       regex: /.*\.pandora\.com.*/,
-      create: createPandoraPseudoPlayer
+      playButtonSelector: ".playButton",
+      pauseButtonSelector: ".pauseButton",
+      create: createTwoButtonPseudoPlayer
     },
     { // SoundCloud on-site
       regex: /.*soundcloud\.com.*/,
@@ -34,6 +36,17 @@
       selector: "a.audio-player",
       create: createGenericFlashPseudoPlayer
     },
+    { // Rdio
+      regex: /.*rdio\.com.*/,
+      selector: "button.play_pause",
+      create: createGenericFlashPseudoPlayer
+    },
+    { // 8tracks
+      regex: /.*\.8tracks\.com.*/,
+      playButtonSelector: "#player_play_button",
+      pauseButtonSelector: "#player_pause_button",
+      create: createTwoButtonPseudoPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: createSingleButtonPseudoPlayer
@@ -41,12 +54,12 @@
   ];
 
   const nonEmbedPlayers = [
-    {  // YouTube HTML5 on-site (or on Last.fm)
-      regex: /.*(youtube\.com|last\.fm).*/,
+    {  // YouTube HTML5 on-site (or on Last.fm, or on Songza)
+      regex: /.*(youtube\.com|last\.fm|songza\.com).*/,
       selector: ".ytp-button-play, .ytp-button-pause",
       create: createSingleButtonPseudoPlayer
     },
-    {  // YouTube Flash on-site  (or on Last.fm)
+    {  // YouTube Flash on-site (or on Last.fm)
       regex: /.*(youtube\.com|last\.fm).*/,
       selector: "object, embed",
       srcRegex: /.*\.youtube\.com.*/,
@@ -157,10 +170,11 @@
     };
   }
 
-  function createPandoraPseudoPlayer(id, win) {
+  //noinspection JSUnusedLocalSymbols
+  function createTwoButtonPseudoPlayer(id, win, selector, playerData) {
     let paused = true;
-    let playButton = win.document.querySelector(".playButton");
-    let pauseButton = win.document.querySelector(".pauseButton");
+    let playButton = win.document.querySelector(playerData.playButtonSelector);
+    let pauseButton = win.document.querySelector(playerData.pauseButtonSelector);
     if (!playButton || !pauseButton) {
       return null;
     }
