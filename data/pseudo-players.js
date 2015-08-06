@@ -43,9 +43,10 @@
       create: createGenericFlashPseudoPlayer
     },
     { // 8tracks
-      regex: /.*\.8tracks\.com.*/,
+      regex: /.*8tracks\.com.*/,
       playButtonSelector: "#player_play_button",
       pauseButtonSelector: "#player_pause_button",
+      waitForButton: true,
       create: createTwoButtonPseudoPlayer
     },
     {  // Bandcamp
@@ -173,25 +174,42 @@
 
   //noinspection JSUnusedLocalSymbols
   function createTwoButtonPseudoPlayer(id, win, selector, playerData) {
-    let paused = true;
+    let waitForButton = false;
     let playButton = win.document.querySelector(playerData.playButtonSelector);
     let pauseButton = win.document.querySelector(playerData.pauseButtonSelector);
     if (!playButton || !pauseButton) {
-      return null;
+      if (playerData.waitForButton) {
+        waitForButton = true;
+      } else {
+        return null;
+      }
+    }
+    let observer = null;
+
+    function initButtonObserver() {
+      observer = new MutationObserver(() => { emitStateChanged(id); });
+      observer.observe(playButton, {attributes: true, attributeFilter: ["style"]});
     }
 
-    let observer = new MutationObserver(function() {
-      paused = (playButton.style.display != "none");
-      emitStateChanged(id);
-    });
-    observer.observe(playButton, { attributes: true, attributeFilter: ["style"] });
+    if (waitForButton) {
+      PseudoPlayers.waitForElementPromise(playerData.playButtonSelector, win.document.body)
+        .then(function(buttonElem) {
+          playButton = buttonElem;
+          pauseButton = playButton.parentNode.querySelector(playerData.pauseButtonSelector);
+          initButtonObserver();
+          emitStateChanged(id);
+        }
+      );
+    } else {
+      initButtonObserver();
+    }
 
     //noinspection JSUnusedGlobalSymbols
     return {
-      get paused() { return paused; },
-      play: function() { playButton.click(); },
-      pause: function() { pauseButton.click(); },
-      destroy: function() { observer.disconnect(); }
+      get paused() { return playButton ? (playButton.style.display != "none") : null; },
+      play: function() { if (this.paused) { playButton.click(); } },
+      pause: function() { if (!this.paused) { pauseButton.click(); } },
+      destroy: function() { if (observer) { observer.disconnect(); } }
     }
   }
 
@@ -295,7 +313,7 @@
       },
       play: function() { if (this.paused) { button.click(); } },
       pause: function() { if (!this.paused) { button.click(); } },
-      destroy: function() { if (observer) observer.disconnect(); }
+      destroy: function() { if (observer) { observer.disconnect(); } }
     }
   }
 
@@ -357,7 +375,7 @@
     for (let i = 0; i < pseudoPlayers.length; i++) {
       let pseudoPlayer = pseudoPlayers[i];
       let player = null;
-      if (!pseudoPlayer.regex || pseudoPlayer.regex.test(window.location.href)) {
+      if (!pseudoPlayer.regex || pseudoPlayer.regex.test(win.location.href)) {
         player = pseudoPlayer.create(id, win, pseudoPlayer.selector, pseudoPlayer);
       }
       if (player) {

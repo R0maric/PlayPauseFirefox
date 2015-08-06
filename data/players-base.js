@@ -15,12 +15,14 @@
       mutations.some(function (mutation) {
         for (let i = 0; i < mutation.addedNodes.length; i++) {
           let elem = mutation.addedNodes[i];
-          let target = elem.matches(targetSelector) ? elem : elem.querySelector(targetSelector);
-          if (target) {
-            callback(target);
-            if (once) {
-              obs.disconnect();
-              return true;
+          if (elem.nodeType == Node.ELEMENT_NODE) {
+            let target = elem.matches(targetSelector) ? elem : elem.querySelector(targetSelector);
+            if (target) {
+              callback(target);
+              if (once) {
+                obs.disconnect();
+                return true;
+              }
             }
           }
         }
