@@ -39,6 +39,7 @@
     { // Rdio
       regex: /.*rdio\.com.*/,
       selector: "button.play_pause",
+      waitForButton: true,
       create: createGenericFlashPseudoPlayer
     },
     { // 8tracks
@@ -107,7 +108,7 @@
   ];
 
   function emitStateChanged(id) {
-    self.port.emit("stateChanged", id); // TODO: assign ids to players on creation
+    self.port.emit("stateChanged", id);
   }
 
   function createSingleButtonPseudoPlayer(id, win, selector) {
@@ -256,29 +257,40 @@
   }
 
   function createGenericFlashPseudoPlayer(id, win, selector, playerData) {
-    let paused = true;
+    let waitForButton = false;
     let button = win.document.querySelector(selector);
     if (!button) {
-      return null;
+      if (playerData.waitForButton) {
+        waitForButton = true;
+      } else {
+        return null;
+      }
     }
-
-    if (button.className.indexOf("disabled") != -1) {
-      paused = null;
-    }
-
+    let observer = null;
     let playingClass = playerData.playingClass || "playing";
-    let observer = new MutationObserver(function() {
-      paused = (button.className.indexOf(playingClass) == -1);
-      emitStateChanged(id);
-    });
-    observer.observe(button, { attributes: true, attributeFilter: ["class"] });
+
+
+    function createButtonObserver() {
+      observer = new MutationObserver(() => { emitStateChanged(id); });
+      observer.observe(button, {attributes: true, attributeFilter: ["class"]});
+    }
+
+    if (waitForButton) {
+      PseudoPlayers.waitForElementPromise(selector).then(createButtonObserver);
+    } else {
+      createButtonObserver();
+    }
 
     //noinspection JSUnusedGlobalSymbols
     return {
-      get paused() { return paused; },
+      get paused() {
+        return (button && button.className.indexOf("disabled") == -1) ?
+          (button.className.indexOf(playingClass) == -1) :
+          null;
+      },
       play: function() { if (this.paused) { button.click(); } },
       pause: function() { if (!this.paused) { button.click(); } },
-      destroy: function() { observer.disconnect(); }
+      destroy: function() { if (observer) observer.disconnect(); }
     }
   }
 
@@ -350,8 +362,7 @@
     return null;
   }
 
-  window.PseudoPlayers = {
-    options: {},
-    detectPseudoPlayer: detectPseudoPlayer
-  }
+  window.PseudoPlayers = window.PseudoPlayers || {};
+  window.PseudoPlayers.options = {};
+  window.PseudoPlayers.detectPseudoPlayer = detectPseudoPlayer;
 })();

@@ -6,16 +6,25 @@
 (function() {
   "use strict";
 
+  const headTitleSelector = "head > title";
+
   let playersList = null;
   let activePlayer = null;
   let titleObserver = null;
   let nextPlayerId = 0;
 
   function createTitleObserver() {
-    const titleElement = document.querySelector('head > title');
-    let observer = new MutationObserver(function() { self.port.emit("title", titleElement.text); });
-    observer.observe(titleElement, { subtree: true, characterData: true, childList: true });
-    return observer;
+    function initTitleObserver(titleElement) {
+      titleObserver = new MutationObserver(function() { self.port.emit("title", titleElement.text); });
+      titleObserver.observe(titleElement, { subtree: true, characterData: true, childList: true });
+    }
+
+    let titleElement = document.querySelector(headTitleSelector);
+    if (titleElement) {
+      initTitleObserver(titleElement);
+    } else {
+      PseudoPlayers.waitForElementPromise(headTitleSelector, document).then(initTitleObserver);
+    }
   }
 
   function togglePlayPause() {
@@ -81,7 +90,7 @@
       return;
     }
 
-    titleObserver = createTitleObserver();
+    createTitleObserver();
     self.port.emit("init");
 
     self.port.on("toggle", togglePlayPause);

@@ -3,7 +3,8 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: MutationObserver: rdio, 8tracks, Twitch.tv
+// TODO: MutationObserver: 8tracks, Twitch.tv
+// TODO: fix TitleObserver for rdio
 // TODO: make do-embeds options work without reload
 // TODO: fix SoundCloud embedded delayed load
 // TODO: add option for experimental sites (default: false)
@@ -14,7 +15,6 @@
   const { viewFor } = require("sdk/view/core");
   const { getTabId } = require("sdk/tabs/utils");
   const simplePrefs = require("sdk/simple-prefs");
-  const self = require("sdk/self");
 
   const playSymbol = "▶";
   const pauseSymbol = "❚❚";
@@ -194,8 +194,9 @@
       exclude: experimentalSupport,
       attachTo: ["existing", "top"],
       contentScriptFile: [
-        self.data.url("pseudo-players.js"),
-        self.data.url("content-script.js")
+       "./players-base.js",
+       "./pseudo-players.js",
+       "./content-script.js"
       ],
       onAttach: startListening
     });
