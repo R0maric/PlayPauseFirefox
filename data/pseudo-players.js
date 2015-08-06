@@ -269,14 +269,19 @@
     let observer = null;
     let playingClass = playerData.playingClass || "playing";
 
-
     function createButtonObserver() {
       observer = new MutationObserver(() => { emitStateChanged(id); });
       observer.observe(button, {attributes: true, attributeFilter: ["class"]});
     }
 
     if (waitForButton) {
-      PseudoPlayers.waitForElementPromise(selector).then(createButtonObserver);
+      PseudoPlayers.waitForElementPromise(selector, win.document.body)
+        .then(function(buttonElem) {
+          button = buttonElem;
+          createButtonObserver();
+          emitStateChanged(id);
+        }
+      );
     } else {
       createButtonObserver();
     }
