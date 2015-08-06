@@ -269,7 +269,7 @@
     let observer = null;
     let playingClass = playerData.playingClass || "playing";
 
-    function createButtonObserver() {
+    function initButtonObserver() {
       observer = new MutationObserver(() => { emitStateChanged(id); });
       observer.observe(button, {attributes: true, attributeFilter: ["class"]});
     }
@@ -278,12 +278,12 @@
       PseudoPlayers.waitForElementPromise(selector, win.document.body)
         .then(function(buttonElem) {
           button = buttonElem;
-          createButtonObserver();
+          initButtonObserver();
           emitStateChanged(id);
         }
       );
     } else {
-      createButtonObserver();
+      initButtonObserver();
     }
 
     //noinspection JSUnusedGlobalSymbols

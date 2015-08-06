@@ -14,7 +14,8 @@
     let observer = new MutationObserver(function (mutations, obs) {
       mutations.some(function (mutation) {
         for (let i = 0; i < mutation.addedNodes.length; i++) {
-          let target = mutation.addedNodes[i].querySelector(targetSelector);
+          let elem = mutation.addedNodes[i];
+          let target = elem.matches(targetSelector) ? elem : elem.querySelector(targetSelector);
           if (target) {
             callback(target);
             if (once) {
