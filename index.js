@@ -4,7 +4,6 @@
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
 // TODO: MutationObserver: Twitch.tv
-// TODO: make do-embeds options work without reload
 // TODO: fix SoundCloud embedded delayed load
 // TODO: add option for experimental sites (default: false)
 
@@ -27,6 +26,7 @@
   const experimentalSupport = [/.*spotify\.com.*/, /.*allmusic\.com.*/, /.*facebook\.com.*/];
 
   let workers = {}; // workers cache
+  let pageMod = null;
 
   function getPlayPauseElement(xulTab) {
     return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "anonid", "play-pause");
@@ -187,17 +187,29 @@
     });
   }
 
-  exports.main = function () {
-    require("sdk/page-mod").PageMod({
-      include: "*", // Match everything
-      exclude: experimentalSupport,
-      attachTo: ["existing", "top"],
-      contentScriptFile: [
-       "./players-base.js",
-       "./pseudo-players.js",
-       "./content-script.js"
-      ],
-      onAttach: startListening
-    });
+  function createPageMod() {
+    pageMod = require("sdk/page-mod").PageMod({
+        include: "*", // Match everything
+        exclude: experimentalSupport,
+        attachTo: ["existing", "top"],
+        contentScriptFile: [
+          "./players-base.js",
+          "./pseudo-players.js",
+          "./content-script.js"
+        ],
+        onAttach: startListening
+      });
+  }
+
+  function resetPageMod() {
+    if (pageMod) {
+      pageMod.destroy();
+      createPageMod();
+    }
+  }
+
+  exports.main = function() {
+    simplePrefs.on("do-embeds", resetPageMod);
+    createPageMod();
   };
 })();

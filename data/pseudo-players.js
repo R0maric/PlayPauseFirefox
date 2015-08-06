@@ -58,7 +58,7 @@
   const nonEmbedPlayers = [
     {  // YouTube HTML5 on-site (or on Last.fm, or on Songza)
       regex: /.*(youtube\.com|last\.fm|songza\.com).*/,
-      selector: ".ytp-button-play, .ytp-button-pause",
+      selector: ".ytp-play-button",
       create: createSingleButtonPseudoPlayer
     },
     {  // YouTube Flash on-site (or on Last.fm)
@@ -81,7 +81,7 @@
 
   const embedPlayers = [
     {  // YouTube HTML5
-      selector: ".ytp-button-play, .ytp-button-pause",
+      selector: ".ytp-play-button",
       create: createSingleButtonPseudoPlayer
     },
     {  // YouTube Flash

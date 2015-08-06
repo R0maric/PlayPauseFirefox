@@ -80,12 +80,14 @@
       ++nextPlayerId;
       playersList.push(player);
     }
-    let iframes = document.querySelectorAll("iframe");
-    for (let i = 0; i < iframes.length; i++) {
-      player = PseudoPlayers.detectPseudoPlayer(nextPlayerId, iframes[i].contentWindow);
-      if (player) {
-        ++nextPlayerId;
-        playersList.push(player);
+    if (options.doEmbeds) {
+      let iframes = document.querySelectorAll("iframe");
+      for (let i = 0; i < iframes.length; i++) {
+        player = PseudoPlayers.detectPseudoPlayer(nextPlayerId, iframes[i].contentWindow);
+        if (player) {
+          ++nextPlayerId;
+          playersList.push(player);
+        }
       }
     }
     if (playersList.length == 0) {
