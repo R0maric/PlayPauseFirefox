@@ -60,10 +60,10 @@
     }
   };
 
-  window.PseudoPlayers = window.PseudoPlayers || {};
-  window.PseudoPlayers.mediaSelector = mediaSelector;
-  window.PseudoPlayers.waitForElement = waitForElement;
-  window.PseudoPlayers.waitForElementPromise = waitForElementPromise;
-  window.PseudoPlayers.emitStateChanged = emitStateChanged;
-  window.PseudoPlayers.PlayerBase = PlayerBase;
+  window.PlayPause = window.PlayPause || {};
+  window.PlayPause.mediaSelector = mediaSelector;
+  window.PlayPause.waitForElement = waitForElement;
+  window.PlayPause.waitForElementPromise = waitForElementPromise;
+  window.PlayPause.emitStateChanged = emitStateChanged;
+  window.PlayPause.PlayerBase = PlayerBase;
 })();

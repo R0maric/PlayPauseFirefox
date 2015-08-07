@@ -14,17 +14,17 @@
 
     let that = this;
     function initButtonObserver() {
-      that._observer = new MutationObserver(() => { PseudoPlayers.emitStateChanged(id); });
+      that._observer = new MutationObserver(() => { PlayPause.emitStateChanged(id); });
       that._observer.observe(that._playButton, {attributes: true, attributeFilter: ["style"]});
     }
 
     if ((!this._playButton || !this._pauseButton)) {
-      PseudoPlayers.waitForElementPromise(playerData.playButtonSelector, win.document.body)
+      PlayPause.waitForElementPromise(playerData.playButtonSelector, win.document.body)
         .then(function(buttonElem) {
           that._playButton = buttonElem;
           that._pauseButton = that._playButton.parentNode.querySelector(playerData.pauseButtonSelector);
           initButtonObserver();
-          PseudoPlayers.emitStateChanged(id);
+          PlayPause.emitStateChanged(id);
         }
       );
     } else {
@@ -33,16 +33,11 @@
   }
 
   TwoButtonGenericPlayer.preCondition = function(win, selector, playerData) {
-    let playButton = win.document.querySelector(playerData.playButtonSelector);
-    let pauseButton = win.document.querySelector(playerData.pauseButtonSelector);
-    if (!playButton || !pauseButton) {
-      if (!playerData.waitForButton) {
-        return false;
-      }
-    }
-    return true;
+    return playerData.waitForButton ||
+      !!( win.document.querySelector(playerData.playButtonSelector) &&
+          win.document.querySelector(playerData.pauseButtonSelector) );
   };
-  TwoButtonGenericPlayer.prototype = Object.create(PseudoPlayers.PlayerBase.prototype);
+  TwoButtonGenericPlayer.prototype = Object.create(PlayPause.PlayerBase.prototype);
 
   Object.defineProperty(
     TwoButtonGenericPlayer.prototype,
@@ -53,6 +48,6 @@
   TwoButtonGenericPlayer.prototype.pause = function() { if (!this.paused) { this._pauseButton.click(); } };
   TwoButtonGenericPlayer.prototype.destroy = function() { if (this._observer) { this._observer.disconnect(); } };
 
-  window.PseudoPlayers = window.PseudoPlayers || {};
-  window.PseudoPlayers.TwoButtonGenericPlayer = TwoButtonGenericPlayer;
+  window.PlayPause = window.PlayPause || {};
+  window.PlayPause.TwoButtonGenericPlayer = TwoButtonGenericPlayer;
 })();

@@ -20,7 +20,7 @@
       let player = event.target;
       if (player) {
         that._paused = player.paused;
-        PseudoPlayers.emitStateChanged(id);
+        PlayPause.emitStateChanged(id);
       }
     });
 
@@ -31,7 +31,7 @@
       this._players[i].addEventListener("click", this._clickHandler);
     }
 
-    let media = win.document.querySelectorAll(PseudoPlayers.mediaSelector);
+    let media = win.document.querySelectorAll(PlayPause.mediaSelector);
     if (this._players.length == 1) { // just one player on the page? if playing, update the state
       if (media.length == 1 && !media[0].paused) {
         this._paused = false;
@@ -45,8 +45,8 @@
       }
     }
   }
-  MultiButtonHtml5Player.preCondition = PseudoPlayers.ButtonlessHtml5Player.preCondition;
-  MultiButtonHtml5Player.prototype = Object.create(PseudoPlayers.ButtonlessHtml5Player.prototype);
+  MultiButtonHtml5Player.preCondition = PlayPause.ButtonlessHtml5Player.preCondition;
+  MultiButtonHtml5Player.prototype = Object.create(PlayPause.ButtonlessHtml5Player.prototype);
   MultiButtonHtml5Player.prototype.destroy = function(reason) {
     for (let i = 0; i < this._players.length; i++) {
       let player = this._players[i];
@@ -54,9 +54,9 @@
         player.removeEventListener("click", this._clickHandler);
       }
     }
-    PseudoPlayers.ButtonlessHtml5Player.prototype.destroy.call(reason);
+    PlayPause.ButtonlessHtml5Player.prototype.destroy.call(reason);
   };
 
-  window.PseudoPlayers = window.PseudoPlayers || {};
-  window.PseudoPlayers.MultiButtonHtml5Player = MultiButtonHtml5Player;
+  window.PlayPause = window.PlayPause || {};
+  window.PlayPause.MultiButtonHtml5Player = MultiButtonHtml5Player;
 })();

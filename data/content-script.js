@@ -21,7 +21,7 @@
     if (titleElement) {
       initTitleObserver(titleElement);
     } else {
-      PseudoPlayers.waitForElementPromise("title", document.head).then(
+      PlayPause.waitForElementPromise("title", document.head).then(
         function(elem) {
           initTitleObserver(elem);
           self.port.emit("title", elem.text);
@@ -73,9 +73,9 @@
   }
 
   function doAttach(options) {
-    PseudoPlayers.options = options;
+    PlayPause.options = options;
     playersList = [];
-    let player = PseudoPlayers.detectPseudoPlayer(nextPlayerId, window);
+    let player = PlayPause.detectPseudoPlayer(nextPlayerId, window);
     if (player) {
       ++nextPlayerId;
       playersList.push(player);
@@ -83,7 +83,7 @@
     if (options.doEmbeds) {
       let iframes = document.querySelectorAll("iframe");
       for (let i = 0; i < iframes.length; i++) {
-        player = PseudoPlayers.detectPseudoPlayer(nextPlayerId, iframes[i].contentWindow);
+        player = PlayPause.detectPseudoPlayer(nextPlayerId, iframes[i].contentWindow);
         if (player) {
           ++nextPlayerId;
           playersList.push(player);

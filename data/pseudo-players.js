@@ -11,45 +11,45 @@
       regex: /.*\.pandora\.com.*/,
       playButtonSelector: ".playButton",
       pauseButtonSelector: ".pauseButton",
-      create: PseudoPlayers.TwoButtonGenericPlayer
+      create: PlayPause.TwoButtonGenericPlayer
     },
     { // SoundCloud on-site
       regex: /.*soundcloud\.com.*/,
       selector: "button.playControl",
-      create: createSingleButtonPseudoPlayer
+      create: PlayPause.SingleButtonGenericPlayer
     },
     { // Hype Machine
       regex: /.*hypem\.com.*/,
       selector: "#playerPlay",
       playingClass: "pause",
-      create: createSingleButtonPseudoPlayer
+      create: PlayPause.SingleButtonGenericPlayer
     },
     { // Amazon Music
       regex: /.*amazon\..*/,
       selector: ".acs-mp3-play, .acs-mp3-pause, div.sample-button",
-      create: PseudoPlayers.MultiButtonHtml5Player
+      create: PlayPause.MultiButtonHtml5Player
     },
     { // AllMusic
       regex: /.*allmusic\.com.*/,
       selector: "a.audio-player",
-      create: createSingleButtonPseudoPlayer
+      create: PlayPause.SingleButtonGenericPlayer
     },
     { // Rdio
       regex: /.*rdio\.com.*/,
       selector: "button.play_pause",
       waitForButton: true,
-      create: createSingleButtonPseudoPlayer
+      create: PlayPause.SingleButtonGenericPlayer
     },
     { // 8tracks
       regex: /.*8tracks\.com.*/,
       playButtonSelector: "#player_play_button",
       pauseButtonSelector: "#player_pause_button",
       waitForButton: true,
-      create: PseudoPlayers.TwoButtonGenericPlayer
+      create: PlayPause.TwoButtonGenericPlayer
     },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
-      create: PseudoPlayers.MultiButtonHtml5Player
+      create: PlayPause.MultiButtonHtml5Player
     }
   ];
 
@@ -57,7 +57,7 @@
     {  // YouTube HTML5 on-site (or on Last.fm, or on Songza)
       regex: /.*(youtube\.com|last\.fm|songza\.com).*/,
       selector: ".ytp-play-button",
-      create: PseudoPlayers.MultiButtonHtml5Player
+      create: PlayPause.MultiButtonHtml5Player
     },
     {  // YouTube Flash on-site (or on Last.fm)
       regex: /.*(youtube\.com|last\.fm).*/,
@@ -80,7 +80,7 @@
   const embedPlayers = [
     {  // YouTube HTML5
       selector: ".ytp-play-button",
-      create: PseudoPlayers.MultiButtonHtml5Player
+      create: PlayPause.MultiButtonHtml5Player
     },
     {  // YouTube Flash
       selector: "object, embed",
@@ -98,11 +98,11 @@
     },
     { // SoundCloud embedded
       selector: "button.playButton",
-      create: createSingleButtonPseudoPlayer
+      create: PlayPause.SingleButtonGenericPlayer
     },
     {  // Generic catch-all HTML5 media
-      selector: PseudoPlayers.mediaSelector,
-      create: PseudoPlayers.ButtonlessHtml5Player
+      selector: PlayPause.mediaSelector,
+      create: PlayPause.ButtonlessHtml5Player
     }
   ];
 
@@ -148,7 +148,7 @@
         let newState = (currentPlayer[stateGetterName]() != playStateValue);
         if (newState != paused) {
           paused = newState;
-          PseudoPlayers.emitStateChanged(id);
+          PlayPause.emitStateChanged(id);
         }
       }
     }
@@ -166,48 +166,6 @@
     };
   }
 
-  function createSingleButtonPseudoPlayer(id, win, selector, playerData) {
-    let waitForButton = false;
-    let button = win.document.querySelector(selector);
-    if (!button) {
-      if (playerData.waitForButton) {
-        waitForButton = true;
-      } else {
-        return null;
-      }
-    }
-    let observer = null;
-    let playingClass = playerData.playingClass || "playing";
-
-    function initButtonObserver() {
-      observer = new MutationObserver(() => { PseudoPlayers.emitStateChanged(id); });
-      observer.observe(button, {attributes: true, attributeFilter: ["class"]});
-    }
-
-    if (waitForButton) {
-      PseudoPlayers.waitForElementPromise(selector, win.document.body)
-        .then(function(buttonElem) {
-          button = buttonElem;
-          initButtonObserver();
-          PseudoPlayers.emitStateChanged(id);
-        }
-      );
-    } else {
-      initButtonObserver();
-    }
-
-    return {
-      get paused() {
-        return (button && button.className.indexOf("disabled") == -1) ?
-          (button.className.indexOf(playingClass) == -1) :
-          null;
-      },
-      play: function() { if (this.paused) { button.click(); } },
-      pause: function() { if (!this.paused) { button.click(); } },
-      destroy: function() { if (observer) { observer.disconnect(); } }
-    }
-  }
-
   function detectPseudoPlayer(id, win) {
     // Test for win.document access, fail gracefully for unexpected iframes
     try {
@@ -221,9 +179,9 @@
       }
     }
 
-    let pseudoPlayers = generalPlayers.concat(window.PseudoPlayers.options.doEmbeds ? embedPlayers : nonEmbedPlayers);
-    for (let i = 0; i < pseudoPlayers.length; i++) {
-      let playerData = pseudoPlayers[i];
+    let PlayPause = generalPlayers.concat(window.PlayPause.options.doEmbeds ? embedPlayers : nonEmbedPlayers);
+    for (let i = 0; i < PlayPause.length; i++) {
+      let playerData = PlayPause[i];
       let player = null;
       if (!playerData.regex || playerData.regex.test(win.location.href)) {
         let preCondition = playerData.create.preCondition;
@@ -242,7 +200,7 @@
     return null;
   }
 
-  window.PseudoPlayers = window.PseudoPlayers || {};
-  window.PseudoPlayers.options = {};
-  window.PseudoPlayers.detectPseudoPlayer = detectPseudoPlayer;
+  window.PlayPause = window.PlayPause || {};
+  window.PlayPause.options = {};
+  window.PlayPause.detectPseudoPlayer = detectPseudoPlayer;
 })();

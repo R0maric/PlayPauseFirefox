@@ -20,7 +20,7 @@
       let player = event.target;
       if (player) {
         that._paused = player.paused;
-        PseudoPlayers.emitStateChanged(id);
+        PlayPause.emitStateChanged(id);
         if (!that._paused) {
           that._currentPlayer = player;
         }
@@ -39,7 +39,7 @@
   }
 
   ButtonlessHtml5Player.preCondition = (win, selector) => !!win.document.querySelector(selector);
-  ButtonlessHtml5Player.prototype = Object.create(PseudoPlayers.PlayerBase.prototype);
+  ButtonlessHtml5Player.prototype = Object.create(PlayPause.PlayerBase.prototype);
 
   ButtonlessHtml5Player.prototype._initEvents = function(handler) {
     this._mediaEventHandler = handler;
@@ -52,6 +52,6 @@
   };
   ButtonlessHtml5Player.prototype.destroy = function(reason) { if (reason) { this._removeEvents(); } };
 
-  window.PseudoPlayers = window.PseudoPlayers || {};
-  window.PseudoPlayers.ButtonlessHtml5Player = ButtonlessHtml5Player;
+  window.PlayPause = window.PlayPause || {};
+  window.PlayPause.ButtonlessHtml5Player = ButtonlessHtml5Player;
 })();
