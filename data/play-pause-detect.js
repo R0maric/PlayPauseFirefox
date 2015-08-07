@@ -65,7 +65,7 @@
       srcRegex: /.*\.youtube\.com.*/,
       stateGetterName: "getPlayerState",
       playStateValue: 1,
-      create: createFlashDirectAccessPseudoPlayer
+      create: PlayPause.DirectAccessFlashPlayer
     },
     {  // Twitch.tv on-site
       regex: /.*twitch\.tv.*/,
@@ -73,7 +73,7 @@
       srcRegex: /.*TwitchPlayer\.swf.*/,
       stateGetterName: "isPaused",
       playStateValue: false,
-      create: createFlashDirectAccessPseudoPlayer
+      create: PlayPause.DirectAccessFlashPlayer
     }
   ];
 
@@ -87,14 +87,14 @@
       srcRegex: /.*\.youtube\.com.*/,
       stateGetterName: "getPlayerState",
       playStateValue: 1,
-      create: createFlashDirectAccessPseudoPlayer
+      create: PlayPause.DirectAccessFlashPlayer
     },
     {  // Twitch.tv
       selector: "object, embed",
       srcRegex: /.*TwitchPlayer\.swf.*/,
       stateGetterName: "isPaused",
       playStateValue: false,
-      create: createFlashDirectAccessPseudoPlayer
+      create: PlayPause.DirectAccessFlashPlayer
     },
     { // SoundCloud embedded
       selector: "button.playButton",
@@ -105,66 +105,6 @@
       create: PlayPause.ButtonlessHtml5Player
     }
   ];
-
-  function createFlashDirectAccessPseudoPlayer(id, win, selector, playerData) {
-    let flash = win.document.querySelectorAll(selector);
-    if (flash.length == 0) {
-      return null;
-    }
-
-    const srcRegex = playerData.srcRegex;
-    const stateGetterName = playerData.stateGetterName;
-    const playStateValue = playerData.playStateValue;
-
-    let players = [];
-    for (let i = 0; i < flash.length; i++) {
-      let sourceUrl = flash[i].tagName == "OBJECT" ? flash[i].data : flash[i].src;
-      if (sourceUrl && srcRegex.test(sourceUrl) && flash[i].wrappedJSObject) {
-        players.push(flash[i].wrappedJSObject);
-      }
-    }
-    if (players.length == 0) {
-      return null;
-    }
-
-    let paused = null;
-    let currentPlayer = players[0];
-
-    // if one of the media is playing, make it the current player
-    for (let i = 0; i < players.length; i++) {
-      if (players[i][stateGetterName]) {
-        paused = true;
-        if (players[i][stateGetterName]() == playStateValue) {
-          currentPlayer = players[i];
-          paused = false;
-          break;
-        }
-      }
-    }
-
-    // "onStateChange" either isn't fired or fails to reach our code; thus, a workaround
-    function stateChangeHandler() {
-      if (currentPlayer[stateGetterName]) {
-        let newState = (currentPlayer[stateGetterName]() != playStateValue);
-        if (newState != paused) {
-          paused = newState;
-          PlayPause.emitStateChanged(id);
-        }
-      }
-    }
-    let timer = win.setInterval(stateChangeHandler, 500);
-
-    return {
-      get paused() { return paused; },
-      play: function() { currentPlayer.playVideo(); },
-      pause: function() { currentPlayer.pauseVideo(); },
-      destroy: function(reason) {
-        if (reason) {
-          win.clearInterval(timer);
-        }
-      }
-    };
-  }
 
   function detectPlayer(id, win) {
     // Test for win.document access, fail gracefully for unexpected iframes
@@ -184,14 +124,9 @@
       let playerData = PlayPause[i];
       let player = null;
       if (!playerData.regex || playerData.regex.test(win.location.href)) {
-        let preCondition = playerData.create.preCondition;
-        if (preCondition) {
-          player = preCondition(win, playerData.selector, playerData) ?
-            new playerData.create(id, win, playerData.selector, playerData) :
-            null;
-        } else {
-          player = playerData.create(id, win, playerData.selector, playerData);
-        }
+        player = playerData.create.preCondition(win, playerData.selector, playerData) ?
+          new playerData.create(id, win, playerData.selector, playerData) :
+          null;
       }
       if (player) {
         return player;

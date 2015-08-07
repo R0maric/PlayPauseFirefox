@@ -197,6 +197,7 @@
           "./multibutton-html5-player.js",
           "./single-button-generic-player.js",
           "./two-button-generic-player.js",
+          "./direct-access-flash-player.js",
           "./play-pause-detect.js",
           "./content-script.js"
         ],
