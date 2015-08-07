@@ -18,29 +18,29 @@
     { // SoundCloud on-site
       regex: /.*soundcloud\.com.*/,
       selector: "button.playControl",
-      create: createGenericFlashPseudoPlayer
+      create: createSingleButtonPseudoPlayer
     },
     { // Hype Machine
       regex: /.*hypem\.com.*/,
       selector: "#playerPlay",
       playingClass: "pause",
-      create: createGenericFlashPseudoPlayer
+      create: createSingleButtonPseudoPlayer
     },
     { // Amazon Music
       regex: /.*amazon\..*/,
       selector: ".acs-mp3-play, .acs-mp3-pause, div.sample-button",
-      create: createSingleButtonPseudoPlayer
+      create: createHtml5PseudoPlayer
     },
     { // AllMusic
       regex: /.*allmusic\.com.*/,
       selector: "a.audio-player",
-      create: createGenericFlashPseudoPlayer
+      create: createSingleButtonPseudoPlayer
     },
     { // Rdio
       regex: /.*rdio\.com.*/,
       selector: "button.play_pause",
       waitForButton: true,
-      create: createGenericFlashPseudoPlayer
+      create: createSingleButtonPseudoPlayer
     },
     { // 8tracks
       regex: /.*8tracks\.com.*/,
@@ -51,7 +51,7 @@
     },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
-      create: createSingleButtonPseudoPlayer
+      create: createHtml5PseudoPlayer
     }
   ];
 
@@ -59,7 +59,7 @@
     {  // YouTube HTML5 on-site (or on Last.fm, or on Songza)
       regex: /.*(youtube\.com|last\.fm|songza\.com).*/,
       selector: ".ytp-play-button",
-      create: createSingleButtonPseudoPlayer
+      create: createHtml5PseudoPlayer
     },
     {  // YouTube Flash on-site (or on Last.fm)
       regex: /.*(youtube\.com|last\.fm).*/,
@@ -82,7 +82,7 @@
   const embedPlayers = [
     {  // YouTube HTML5
       selector: ".ytp-play-button",
-      create: createSingleButtonPseudoPlayer
+      create: createHtml5PseudoPlayer
     },
     {  // YouTube Flash
       selector: "object, embed",
@@ -100,11 +100,11 @@
     },
     { // SoundCloud embedded
       selector: "button.playButton",
-      create: createGenericFlashPseudoPlayer
+      create: createSingleButtonPseudoPlayer
     },
     {  // Generic catch-all HTML5 media
       selector: mediaSelector,
-      create: createGenericPseudoPlayer
+      create: ButtonlessHtml5Player
     }
   ];
 
@@ -112,7 +112,50 @@
     self.port.emit("stateChanged", id);
   }
 
-  function createSingleButtonPseudoPlayer(id, win, selector) {
+  function ButtonlessHtml5Player(id, win, selector) {
+    let players = win.document.querySelectorAll(selector);
+
+    this._win = win;
+    this._paused = true;
+    this._currentPlayer = players[0];
+
+    let that = this;
+    Object.defineProperty(this, "paused", { get: function() { return that._paused; } } );
+
+    this._mediaEventHandler = function(event) {
+      let player = event.target;
+      if (player) {
+        that._paused = player.paused;
+        emitStateChanged(id);
+        if (!that._paused) {
+          that._currentPlayer = player;
+        }
+      }
+    };
+
+    win.addEventListener("playing", this._mediaEventHandler, true);
+    win.addEventListener("pause", this._mediaEventHandler, true);
+
+    // if one of the media is playing, make it the current player
+    for (let i = 0; i < players.length; i++) {
+      if (!players[i].paused) {
+        this._currentPlayer = players[i];
+        this._paused = false;
+        break;
+      }
+    }
+  }
+  ButtonlessHtml5Player.preCondition = (win, selector) => !!win.document.querySelector(selector);
+  ButtonlessHtml5Player.prototype.play = function() { this._currentPlayer.play(); };
+  ButtonlessHtml5Player.prototype.pause = function() { this._currentPlayer.pause(); };
+  ButtonlessHtml5Player.prototype.destroy = function(reason) {
+    if (reason) {
+      this._win.removeEventListener("playing", this._mediaEventHandler, true);
+      this._win.removeEventListener("pause", this._mediaEventHandler, true);
+    }
+  };
+
+  function createHtml5PseudoPlayer(id, win, selector) {
     let buttons = win.document.querySelectorAll(selector);
     if (buttons.length == 0) {
       return null;
@@ -152,7 +195,6 @@
     win.addEventListener("playing", mediaEventHandler, true);
     win.addEventListener("pause", mediaEventHandler, true);
 
-    //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return paused; },
       play: function() { if (this.paused) { currentButton.click(); } },
@@ -204,7 +246,6 @@
       initButtonObserver();
     }
 
-    //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return playButton ? (playButton.style.display != "none") : null; },
       play: function() { if (this.paused) { playButton.click(); } },
@@ -261,7 +302,6 @@
     }
     let timer = win.setInterval(stateChangeHandler, 500);
 
-    //noinspection JSUnusedGlobalSymbols
     return {
       get paused() { return paused; },
       play: function() { currentPlayer.playVideo(); },
@@ -274,7 +314,7 @@
     };
   }
 
-  function createGenericFlashPseudoPlayer(id, win, selector, playerData) {
+  function createSingleButtonPseudoPlayer(id, win, selector, playerData) {
     let waitForButton = false;
     let button = win.document.querySelector(selector);
     if (!button) {
@@ -304,7 +344,6 @@
       initButtonObserver();
     }
 
-    //noinspection JSUnusedGlobalSymbols
     return {
       get paused() {
         return (button && button.className.indexOf("disabled") == -1) ?
@@ -315,47 +354,6 @@
       pause: function() { if (!this.paused) { button.click(); } },
       destroy: function() { if (observer) { observer.disconnect(); } }
     }
-  }
-
-  function createGenericPseudoPlayer(id, win, selector) {
-    let players = win.document.querySelectorAll(selector);
-    if (players.length == 0) {
-      return null;
-    }
-    let paused = true;
-    let currentPlayer = players[0];
-    let mediaEventHandler = function(event) {
-      let player = event.target;
-      if (player) {
-        paused = player.paused;
-        emitStateChanged(id);
-      }
-    };
-
-    // if one of the media is playing, make it the current player
-    for (let i = 0; i < players.length; i++) {
-      if (!players[i].paused) {
-        currentPlayer = players[i];
-        paused = false;
-        break;
-      }
-    }
-
-    win.addEventListener("playing", mediaEventHandler, true);
-    win.addEventListener("pause", mediaEventHandler, true);
-
-    //noinspection JSUnusedGlobalSymbols
-    return {
-      get paused() { return paused; },
-      play: function() { currentPlayer.play(); },
-      pause: function() { currentPlayer.pause(); },
-      destroy: function(reason) {
-        if (reason) {
-          win.removeEventListener("playing", mediaEventHandler, true);
-          win.removeEventListener("pause", mediaEventHandler, true);
-        }
-      }
-    };
   }
 
   function detectPseudoPlayer(id, win) {
@@ -373,10 +371,17 @@
 
     let pseudoPlayers = generalPlayers.concat(window.PseudoPlayers.options.doEmbeds ? embedPlayers : nonEmbedPlayers);
     for (let i = 0; i < pseudoPlayers.length; i++) {
-      let pseudoPlayer = pseudoPlayers[i];
+      let playerData = pseudoPlayers[i];
       let player = null;
-      if (!pseudoPlayer.regex || pseudoPlayer.regex.test(win.location.href)) {
-        player = pseudoPlayer.create(id, win, pseudoPlayer.selector, pseudoPlayer);
+      if (!playerData.regex || playerData.regex.test(win.location.href)) {
+        let preCondition = playerData.create.preCondition;
+        if (preCondition) {
+          player = preCondition(win, playerData.selector) ?
+            new playerData.create(id, win, playerData.selector, playerData) :
+            null;
+        } else {
+          player = playerData.create(id, win, playerData.selector, playerData);
+        }
       }
       if (player) {
         return player;

@@ -5,7 +5,6 @@
 
 // TODO: MutationObserver: Twitch.tv
 // TODO: fix SoundCloud embedded delayed load
-// TODO: add option for experimental sites (default: false)
 
 (function() {
   "use strict";
@@ -23,7 +22,7 @@
 
   const fixTabAttributes = ["pinned", "selected", "visuallyselected"];
 
-  const experimentalSupport = [/.*spotify\.com.*/, /.*allmusic\.com.*/, /.*facebook\.com.*/];
+  const experimentalSupport = [/.*allmusic\.com.*/, /.*facebook\.com.*/];
 
   let workers = {}; // workers cache
   let pageMod = null;
