@@ -195,6 +195,7 @@
           "./players-base.js",
           "./buttonless-html5-player.js",
           "./multibutton-html5-player.js",
+          "./two-button-generic-player.js",
           "./pseudo-players.js",
           "./content-script.js"
         ],

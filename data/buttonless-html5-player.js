@@ -38,6 +38,9 @@
     }
   }
 
+  ButtonlessHtml5Player.preCondition = (win, selector) => !!win.document.querySelector(selector);
+  ButtonlessHtml5Player.prototype = Object.create(PseudoPlayers.PlayerBase.prototype);
+
   ButtonlessHtml5Player.prototype._initEvents = function(handler) {
     this._mediaEventHandler = handler;
     this._win.addEventListener("playing", handler, true);
@@ -46,19 +49,6 @@
   ButtonlessHtml5Player.prototype._removeEvents = function() {
     this._win.removeEventListener("playing", this._mediaEventHandler, true);
     this._win.removeEventListener("pause", this._mediaEventHandler, true);
-  };
-
-  ButtonlessHtml5Player.preCondition = (win, selector) => !!win.document.querySelector(selector);
-  Object.defineProperty(ButtonlessHtml5Player.prototype, "paused", { get: function() { return this._paused; } } );
-  ButtonlessHtml5Player.prototype.play = function() {
-    if (this.paused) {
-      this._currentPlayer[this._playFuncName]();
-    }
-  };
-  ButtonlessHtml5Player.prototype.pause = function() {
-    if (!this.paused) {
-      this._currentPlayer[this._pauseFuncName]();
-    }
   };
   ButtonlessHtml5Player.prototype.destroy = function(reason) { if (reason) { this._removeEvents(); } };
 

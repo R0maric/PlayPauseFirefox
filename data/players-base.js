@@ -47,9 +47,23 @@
     self.port.emit("stateChanged", id);
   }
 
+  function PlayerBase() { throw "PlayerBase is a base 'abstract' class. It is not meant to be instantiated."; }
+  Object.defineProperty(PlayerBase.prototype, "paused", { get: function() { return this._paused; } } );
+  PlayerBase.prototype.play = function() {
+    if (this.paused) {
+      this._currentPlayer[this._playFuncName]();
+    }
+  };
+  PlayerBase.prototype.pause = function() {
+    if (!this.paused) {
+      this._currentPlayer[this._pauseFuncName]();
+    }
+  };
+
   window.PseudoPlayers = window.PseudoPlayers || {};
   window.PseudoPlayers.mediaSelector = mediaSelector;
   window.PseudoPlayers.waitForElement = waitForElement;
   window.PseudoPlayers.waitForElementPromise = waitForElementPromise;
   window.PseudoPlayers.emitStateChanged = emitStateChanged;
+  window.PseudoPlayers.PlayerBase = PlayerBase;
 })();

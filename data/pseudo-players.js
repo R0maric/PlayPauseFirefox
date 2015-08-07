@@ -11,7 +11,7 @@
       regex: /.*\.pandora\.com.*/,
       playButtonSelector: ".playButton",
       pauseButtonSelector: ".pauseButton",
-      create: createTwoButtonPseudoPlayer
+      create: PseudoPlayers.TwoButtonGenericPlayer
     },
     { // SoundCloud on-site
       regex: /.*soundcloud\.com.*/,
@@ -45,7 +45,7 @@
       playButtonSelector: "#player_play_button",
       pauseButtonSelector: "#player_pause_button",
       waitForButton: true,
-      create: createTwoButtonPseudoPlayer
+      create: PseudoPlayers.TwoButtonGenericPlayer
     },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
@@ -105,46 +105,6 @@
       create: PseudoPlayers.ButtonlessHtml5Player
     }
   ];
-
-  //noinspection JSUnusedLocalSymbols
-  function createTwoButtonPseudoPlayer(id, win, selector, playerData) {
-    let waitForButton = false;
-    let playButton = win.document.querySelector(playerData.playButtonSelector);
-    let pauseButton = win.document.querySelector(playerData.pauseButtonSelector);
-    if (!playButton || !pauseButton) {
-      if (playerData.waitForButton) {
-        waitForButton = true;
-      } else {
-        return null;
-      }
-    }
-    let observer = null;
-
-    function initButtonObserver() {
-      observer = new MutationObserver(() => { PseudoPlayers.emitStateChanged(id); });
-      observer.observe(playButton, {attributes: true, attributeFilter: ["style"]});
-    }
-
-    if (waitForButton) {
-      PseudoPlayers.waitForElementPromise(playerData.playButtonSelector, win.document.body)
-        .then(function(buttonElem) {
-          playButton = buttonElem;
-          pauseButton = playButton.parentNode.querySelector(playerData.pauseButtonSelector);
-          initButtonObserver();
-          PseudoPlayers.emitStateChanged(id);
-        }
-      );
-    } else {
-      initButtonObserver();
-    }
-
-    return {
-      get paused() { return playButton ? (playButton.style.display != "none") : null; },
-      play: function() { if (this.paused) { playButton.click(); } },
-      pause: function() { if (!this.paused) { pauseButton.click(); } },
-      destroy: function() { if (observer) { observer.disconnect(); } }
-    }
-  }
 
   function createFlashDirectAccessPseudoPlayer(id, win, selector, playerData) {
     let flash = win.document.querySelectorAll(selector);
@@ -268,7 +228,7 @@
       if (!playerData.regex || playerData.regex.test(win.location.href)) {
         let preCondition = playerData.create.preCondition;
         if (preCondition) {
-          player = preCondition(win, playerData.selector) ?
+          player = preCondition(win, playerData.selector, playerData) ?
             new playerData.create(id, win, playerData.selector, playerData) :
             null;
         } else {
