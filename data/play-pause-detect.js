@@ -166,7 +166,7 @@
     };
   }
 
-  function detectPseudoPlayer(id, win) {
+  function detectPlayer(id, win) {
     // Test for win.document access, fail gracefully for unexpected iframes
     try {
       //noinspection JSUnusedLocalSymbols
@@ -202,5 +202,5 @@
 
   window.PlayPause = window.PlayPause || {};
   window.PlayPause.options = {};
-  window.PlayPause.detectPseudoPlayer = detectPseudoPlayer;
+  window.PlayPause.detectPlayer = detectPlayer;
 })();

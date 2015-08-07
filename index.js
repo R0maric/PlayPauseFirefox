@@ -192,12 +192,12 @@
         exclude: experimentalSupport,
         attachTo: ["existing", "top"],
         contentScriptFile: [
-          "./players-base.js",
+          "./play-pause-base.js",
           "./buttonless-html5-player.js",
           "./multibutton-html5-player.js",
           "./single-button-generic-player.js",
           "./two-button-generic-player.js",
-          "./pseudo-players.js",
+          "./play-pause-detect.js",
           "./content-script.js"
         ],
         onAttach: startListening

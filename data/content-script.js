@@ -75,7 +75,7 @@
   function doAttach(options) {
     PlayPause.options = options;
     playersList = [];
-    let player = PlayPause.detectPseudoPlayer(nextPlayerId, window);
+    let player = PlayPause.detectPlayer(nextPlayerId, window);
     if (player) {
       ++nextPlayerId;
       playersList.push(player);
@@ -83,7 +83,7 @@
     if (options.doEmbeds) {
       let iframes = document.querySelectorAll("iframe");
       for (let i = 0; i < iframes.length; i++) {
-        player = PlayPause.detectPseudoPlayer(nextPlayerId, iframes[i].contentWindow);
+        player = PlayPause.detectPlayer(nextPlayerId, iframes[i].contentWindow);
         if (player) {
           ++nextPlayerId;
           playersList.push(player);
