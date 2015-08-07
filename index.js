@@ -193,6 +193,8 @@
         attachTo: ["existing", "top"],
         contentScriptFile: [
           "./players-base.js",
+          "./buttonless-html5-player.js",
+          "./multibutton-html5-player.js",
           "./pseudo-players.js",
           "./content-script.js"
         ],

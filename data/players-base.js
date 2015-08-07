@@ -6,6 +6,8 @@
 (function() {
   "use strict";
 
+  const mediaSelector = "audio, video";
+
   // Wait for element defined by targetSelector under rootElem
   // When the element appears, call callback() function on it and stop waiting (if once flag is true).
   function waitForElement(targetSelector, callback, once, rootElem) {
@@ -41,7 +43,13 @@
     });
   }
 
+  function emitStateChanged(id) {
+    self.port.emit("stateChanged", id);
+  }
+
   window.PseudoPlayers = window.PseudoPlayers || {};
+  window.PseudoPlayers.mediaSelector = mediaSelector;
   window.PseudoPlayers.waitForElement = waitForElement;
   window.PseudoPlayers.waitForElementPromise = waitForElementPromise;
+  window.PseudoPlayers.emitStateChanged = emitStateChanged;
 })();

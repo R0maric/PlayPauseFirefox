@@ -6,8 +6,6 @@
 (function() {
   "use strict";
 
-  const mediaSelector = "audio, video";
-
   const generalPlayers = [
     { // Pandora
       regex: /.*\.pandora\.com.*/,
@@ -29,7 +27,7 @@
     { // Amazon Music
       regex: /.*amazon\..*/,
       selector: ".acs-mp3-play, .acs-mp3-pause, div.sample-button",
-      create: createHtml5PseudoPlayer
+      create: PseudoPlayers.MultiButtonHtml5Player
     },
     { // AllMusic
       regex: /.*allmusic\.com.*/,
@@ -51,7 +49,7 @@
     },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
-      create: createHtml5PseudoPlayer
+      create: PseudoPlayers.MultiButtonHtml5Player
     }
   ];
 
@@ -59,7 +57,7 @@
     {  // YouTube HTML5 on-site (or on Last.fm, or on Songza)
       regex: /.*(youtube\.com|last\.fm|songza\.com).*/,
       selector: ".ytp-play-button",
-      create: createHtml5PseudoPlayer
+      create: PseudoPlayers.MultiButtonHtml5Player
     },
     {  // YouTube Flash on-site (or on Last.fm)
       regex: /.*(youtube\.com|last\.fm).*/,
@@ -82,7 +80,7 @@
   const embedPlayers = [
     {  // YouTube HTML5
       selector: ".ytp-play-button",
-      create: createHtml5PseudoPlayer
+      create: PseudoPlayers.MultiButtonHtml5Player
     },
     {  // YouTube Flash
       selector: "object, embed",
@@ -103,116 +101,10 @@
       create: createSingleButtonPseudoPlayer
     },
     {  // Generic catch-all HTML5 media
-      selector: mediaSelector,
-      create: ButtonlessHtml5Player
+      selector: PseudoPlayers.mediaSelector,
+      create: PseudoPlayers.ButtonlessHtml5Player
     }
   ];
-
-  function emitStateChanged(id) {
-    self.port.emit("stateChanged", id);
-  }
-
-  function ButtonlessHtml5Player(id, win, selector) {
-    let players = win.document.querySelectorAll(selector);
-
-    this._win = win;
-    this._paused = true;
-    this._currentPlayer = players[0];
-
-    let that = this;
-    Object.defineProperty(this, "paused", { get: function() { return that._paused; } } );
-
-    this._mediaEventHandler = function(event) {
-      let player = event.target;
-      if (player) {
-        that._paused = player.paused;
-        emitStateChanged(id);
-        if (!that._paused) {
-          that._currentPlayer = player;
-        }
-      }
-    };
-
-    win.addEventListener("playing", this._mediaEventHandler, true);
-    win.addEventListener("pause", this._mediaEventHandler, true);
-
-    // if one of the media is playing, make it the current player
-    for (let i = 0; i < players.length; i++) {
-      if (!players[i].paused) {
-        this._currentPlayer = players[i];
-        this._paused = false;
-        break;
-      }
-    }
-  }
-  ButtonlessHtml5Player.preCondition = (win, selector) => !!win.document.querySelector(selector);
-  ButtonlessHtml5Player.prototype.play = function() { this._currentPlayer.play(); };
-  ButtonlessHtml5Player.prototype.pause = function() { this._currentPlayer.pause(); };
-  ButtonlessHtml5Player.prototype.destroy = function(reason) {
-    if (reason) {
-      this._win.removeEventListener("playing", this._mediaEventHandler, true);
-      this._win.removeEventListener("pause", this._mediaEventHandler, true);
-    }
-  };
-
-  function createHtml5PseudoPlayer(id, win, selector) {
-    let buttons = win.document.querySelectorAll(selector);
-    if (buttons.length == 0) {
-      return null;
-    }
-    let paused = true;
-    let currentButton = buttons[0];
-
-    let clickHandler = function(event) {
-      currentButton = event.target;
-    };
-    let mediaEventHandler = function(event) {
-      let player = event.target;
-      if (player) {
-        paused = player.paused;
-        emitStateChanged(id);
-      }
-    };
-
-    let media = win.document.querySelectorAll(mediaSelector);
-    if (buttons.length == 1) { // just one player on the page? if playing, update the state
-      if (media.length == 1 && !media[0].paused) {
-        paused = false;
-      }
-    } else { // multiple players on the page? if playing, unset the state; it will update on next click event
-      for (let i = 0; i < media.length; i++) {
-        if (!media[i].paused) {
-          paused = null;
-          break;
-        }
-      }
-    }
-
-    for (let i = 0; i < buttons.length; i++) {
-      buttons[i].addEventListener("click", clickHandler);
-    }
-
-    win.addEventListener("playing", mediaEventHandler, true);
-    win.addEventListener("pause", mediaEventHandler, true);
-
-    return {
-      get paused() { return paused; },
-      play: function() { if (this.paused) { currentButton.click(); } },
-      pause: function() { if (!this.paused) { currentButton.click(); } },
-      destroy: function(reason) {
-        if (reason) {
-          win.removeEventListener("playing", mediaEventHandler, true);
-          win.removeEventListener("pause", mediaEventHandler, true);
-        }
-        for (let i = 0; i < buttons.length; i++) {
-          let button = buttons[i];
-          if (button) {
-            button.removeEventListener("click", clickHandler);
-          }
-        }
-      }
-    };
-  }
 
   //noinspection JSUnusedLocalSymbols
   function createTwoButtonPseudoPlayer(id, win, selector, playerData) {
@@ -229,7 +121,7 @@
     let observer = null;
 
     function initButtonObserver() {
-      observer = new MutationObserver(() => { emitStateChanged(id); });
+      observer = new MutationObserver(() => { PseudoPlayers.emitStateChanged(id); });
       observer.observe(playButton, {attributes: true, attributeFilter: ["style"]});
     }
 
@@ -239,7 +131,7 @@
           playButton = buttonElem;
           pauseButton = playButton.parentNode.querySelector(playerData.pauseButtonSelector);
           initButtonObserver();
-          emitStateChanged(id);
+          PseudoPlayers.emitStateChanged(id);
         }
       );
     } else {
@@ -296,7 +188,7 @@
         let newState = (currentPlayer[stateGetterName]() != playStateValue);
         if (newState != paused) {
           paused = newState;
-          emitStateChanged(id);
+          PseudoPlayers.emitStateChanged(id);
         }
       }
     }
@@ -328,7 +220,7 @@
     let playingClass = playerData.playingClass || "playing";
 
     function initButtonObserver() {
-      observer = new MutationObserver(() => { emitStateChanged(id); });
+      observer = new MutationObserver(() => { PseudoPlayers.emitStateChanged(id); });
       observer.observe(button, {attributes: true, attributeFilter: ["class"]});
     }
 
@@ -337,7 +229,7 @@
         .then(function(buttonElem) {
           button = buttonElem;
           initButtonObserver();
-          emitStateChanged(id);
+          PseudoPlayers.emitStateChanged(id);
         }
       );
     } else {
