@@ -56,6 +56,11 @@
       containerSelector: "div.content",
       create: PlayPause.DirectAccessFlashPlayer
     },
+    { // MySpace
+      regex: /.*myspace\.com.*/,
+      selector: "button.play",
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
