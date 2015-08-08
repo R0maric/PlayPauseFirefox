@@ -55,7 +55,17 @@
     this._timer = win.setInterval(stateChangeHandler, 500);
   }
 
-  DirectAccessFlashPlayer.preCondition = (win, selector) => !!win.document.querySelector(selector);
+  DirectAccessFlashPlayer.preCondition = function (win, selector, playerData) {
+    const srcRegex = playerData.srcRegex;
+    let flash = win.document.querySelectorAll(selector);
+    for (let i = 0; i < flash.length; i++) {
+      let sourceUrl = flash[i].tagName == "OBJECT" ? flash[i].data : flash[i].src;
+      if (sourceUrl && srcRegex.test(sourceUrl) && flash[i].wrappedJSObject) {
+        return true;
+      }
+    }
+    return false;
+  };
   DirectAccessFlashPlayer.prototype = Object.create(PlayPause.PlayerBase.prototype);
   DirectAccessFlashPlayer.prototype.destroy = function(reason) {
     if (reason) {
