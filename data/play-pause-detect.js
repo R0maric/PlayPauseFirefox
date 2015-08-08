@@ -84,11 +84,11 @@
   ];
 
   const embedPlayers = [
-    {  // YouTube HTML5
+    {  // YouTube HTML5 embedded
       selector: ".ytp-play-button",
       create: PlayPause.MultiButtonHtml5Player
     },
-    {  // YouTube Flash
+    {  // YouTube Flash embedded
       selector: "object, embed",
       srcRegex: /.*\.youtube\.com.*/,
       stateGetterName: "getPlayerState",
@@ -112,7 +112,7 @@
       create: PlayPause.DirectAccessFlashPlayer
     },
     { // SoundCloud embedded
-      selector: "button.playButton",
+      selector: "button.playButton", // TODO: very bad condition, too generic
       create: PlayPause.SingleButtonGenericPlayer
     },
     {  // Generic catch-all HTML5 media
