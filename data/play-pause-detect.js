@@ -102,6 +102,15 @@
       playStateValue: false,
       create: PlayPause.DirectAccessFlashPlayer
     },
+    {  // Ooyala Flash embedded
+      selector: "object, embed",
+      srcRegex: /.*player\.ooyala\.com.*/,
+      stateGetterName: "getState",
+      playStateValue: "playing",
+      playFuncName: "playMovie",
+      pauseFuncName: "pauseMovie",
+      create: PlayPause.DirectAccessFlashPlayer
+    },
     { // SoundCloud embedded
       selector: "button.playButton",
       create: PlayPause.SingleButtonGenericPlayer
@@ -125,9 +134,9 @@
       }
     }
 
-    let PlayPause = generalPlayers.concat(window.PlayPause.options.doEmbeds ? embedPlayers : nonEmbedPlayers);
-    for (let i = 0; i < PlayPause.length; i++) {
-      let playerData = PlayPause[i];
+    let playerDataList = generalPlayers.concat(PlayPause.options.doEmbeds ? embedPlayers : nonEmbedPlayers);
+    for (let i = 0; i < playerDataList.length; i++) {
+      let playerData = playerDataList[i];
       let player = null;
       if (!playerData.regex || playerData.regex.test(win.location.href)) {
         player = playerData.create.preCondition(win, playerData.selector, playerData) ?

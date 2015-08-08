@@ -19,8 +19,8 @@
   }
 
   function DirectAccessFlashPlayer(id, win, selector, playerData) {
-    this._playFuncName = "playVideo";
-    this._pauseFuncName = "pauseVideo";
+    this._playFuncName = playerData.playFuncName || "playVideo";
+    this._pauseFuncName = playerData.pauseFuncName || "pauseVideo";
 
     this._win = win;
     this._paused = null;
