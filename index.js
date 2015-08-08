@@ -3,7 +3,6 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: MutationObserver: Twitch.tv
 // TODO: fix SoundCloud embedded delayed load
 
 (function() {

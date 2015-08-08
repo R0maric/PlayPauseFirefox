@@ -47,6 +47,15 @@
       waitForButton: true,
       create: PlayPause.TwoButtonGenericPlayer
     },
+    {  // Twitch.tv on-site
+      regex: /.*twitch\.tv.*/,
+      selector: "object, embed",
+      srcRegex: /.*TwitchPlayer\.swf.*/,
+      stateGetterName: "isPaused",
+      playStateValue: false,
+      containerSelector: "div.content",
+      create: PlayPause.DirectAccessFlashPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
@@ -66,14 +75,6 @@
       stateGetterName: "getPlayerState",
       playStateValue: 1,
       create: PlayPause.DirectAccessFlashPlayer
-    },
-    {  // Twitch.tv on-site
-      regex: /.*twitch\.tv.*/,
-      selector: "object, embed",
-      srcRegex: /.*TwitchPlayer\.swf.*/,
-      stateGetterName: "isPaused",
-      playStateValue: false,
-      create: PlayPause.DirectAccessFlashPlayer
     }
   ];
 
@@ -89,7 +90,7 @@
       playStateValue: 1,
       create: PlayPause.DirectAccessFlashPlayer
     },
-    {  // Twitch.tv
+    {  // Twitch.tv embedded
       selector: "object, embed",
       srcRegex: /.*TwitchPlayer\.swf.*/,
       stateGetterName: "isPaused",
