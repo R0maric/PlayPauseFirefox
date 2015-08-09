@@ -4,6 +4,7 @@
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
 // TODO: fix SoundCloud embedded delayed load
+// TODO: detect tab tear-off/merge events
 
 (function() {
   "use strict";
@@ -105,6 +106,8 @@
     let xulTab = event.target;
     let chromeDocument = xulTab.ownerDocument;
 
+    setTabLabelValueForTab(xulTab, xulTab.label, true);
+
     let closeButton = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "close-button");
     if (!closeButton) {
       // Check if "Tab Mix Plus" Close button is present.
@@ -167,9 +170,6 @@
       if (playPause) {
         playPause.textContent = (paused ? pauseSymbol : playSymbol);
       }
-    });
-    worker.port.on("title", function (title) {
-      setTabLabelValueForTab(xulTab, title, true);
     });
     worker.on("detach", function () {
       if (xulTab) {

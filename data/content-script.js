@@ -8,27 +8,7 @@
 
   let playersList = null;
   let activePlayer = null;
-  let titleObserver = null;
   let nextPlayerId = 0;
-
-  function createTitleObserver() {
-    function initTitleObserver(elem) {
-      titleObserver = new MutationObserver(() => { self.port.emit("title", elem.text); });
-      titleObserver.observe(elem, { subtree: true, characterData: true, childList: true });
-    }
-
-    let titleElement = document.querySelector("head > title");
-    if (titleElement) {
-      initTitleObserver(titleElement);
-    } else {
-      PlayPause.waitForElementPromise("title", document.head).then(
-        function(elem) {
-          initTitleObserver(elem);
-          self.port.emit("title", elem.text);
-        }
-      );
-    }
-  }
 
   function togglePlayPause() {
     let paused = getPausedState();
@@ -95,7 +75,6 @@
       return;
     }
 
-    createTitleObserver();
     self.port.emit("init");
 
     self.port.on("toggle", togglePlayPause);
@@ -104,10 +83,6 @@
   }
 
   function doDetach(reason) {
-    if (titleObserver) {
-      titleObserver.disconnect();
-      titleObserver = null;
-    }
     if (playersList) {
       playersList.forEach(function(player) { player.destroy(reason); });
       playersList = null;
