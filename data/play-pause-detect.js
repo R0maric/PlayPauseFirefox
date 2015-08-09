@@ -61,6 +61,11 @@
       selector: "button.play",
       create: PlayPause.SingleButtonGenericPlayer
     },
+    { // Silver.ru
+      regex: /.*silver\.ru.*/,
+      selector: "div.js-play-pause",
+      create: PlayPause.MultiButtonHtml5Player
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
