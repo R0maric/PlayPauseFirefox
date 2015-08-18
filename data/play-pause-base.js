@@ -17,7 +17,7 @@
       mutations.some(function (mutation) {
         for (let i = 0; i < mutation.addedNodes.length; i++) {
           let elem = mutation.addedNodes[i];
-          if (elem.nodeType == Node.ELEMENT_NODE) {
+          if (elem.nodeType === Node.ELEMENT_NODE) {
             let target = elem.matches(targetSelector) ? elem : elem.querySelector(targetSelector);
             if (target) {
               callback(target);
@@ -37,8 +37,7 @@
   }
 
   function waitForElementPromise(targetSelector, rootElem) {
-    //noinspection JSUnusedLocalSymbols
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve) {
       waitForElement(targetSelector, resolve, true, rootElem);
     });
   }

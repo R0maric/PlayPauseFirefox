@@ -45,8 +45,8 @@
     "paused",
     {
       get: function() {
-        return (this._currentPlayer && this._currentPlayer.className.indexOf("disabled") == -1) ?
-          (this._currentPlayer.className.indexOf(this._playingClass) == -1) : null;
+        return this._currentPlayer && this._currentPlayer.className.indexOf("disabled") === -1 ?
+          this._currentPlayer.className.indexOf(this._playingClass) === -1 : null;
       }
     }
   );

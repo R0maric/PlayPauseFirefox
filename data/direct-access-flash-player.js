@@ -10,12 +10,12 @@
     let flash = win.document.querySelectorAll(selector);
     let players = [];
     for (let i = 0; i < flash.length; i++) {
-      let sourceUrl = flash[i].tagName == "OBJECT" ? flash[i].data : flash[i].src;
+      let sourceUrl = flash[i].tagName === "OBJECT" ? flash[i].data : flash[i].src;
       if (sourceUrl && srcRegex.test(sourceUrl) && flash[i].wrappedJSObject) {
         players.push(flash[i].wrappedJSObject);
       }
     }
-    return players
+    return players;
   }
 
   function DirectAccessFlashPlayer(id, win, selector, playerData) {
@@ -38,7 +38,7 @@
     for (let i = 0; i < players.length; i++) {
       if (players[i][stateGetterName]) {
         this._paused = true;
-        if (players[i][stateGetterName]() == playStateValue) {
+        if (players[i][stateGetterName]() === playStateValue) {
           this._currentPlayer = players[i];
           this._paused = false;
           break;
@@ -51,8 +51,8 @@
     // TODO: account for multiple players, change _currentPlayer accordingly... maybe?
     function stateChangeHandler() {
       if (that._currentPlayer[stateGetterName]) {
-        let newState = (that._currentPlayer[stateGetterName]() != playStateValue);
-        if (newState != that._paused) {
+        let newState = that._currentPlayer[stateGetterName]() !== playStateValue;
+        if (newState !== that._paused) {
           that._paused = newState;
           PlayPause.emitStateChanged(id);
         }

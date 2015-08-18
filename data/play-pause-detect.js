@@ -129,10 +129,10 @@
   function detectPlayer(id, win) {
     // Test for win.document access, fail gracefully for unexpected iframes
     try {
-      //noinspection JSUnusedLocalSymbols
+      //noinspection JSUnusedLocalSymbols, JSHint
       let dummy = win.document;
     } catch (exception) {
-      if (exception.message.toLowerCase().indexOf('permission denied') !== -1) {
+      if (exception.message.toLowerCase().indexOf("permission denied") !== -1) {
         return null;
       } else {
         throw exception;

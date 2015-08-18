@@ -32,8 +32,8 @@
     }
 
     let media = win.document.querySelectorAll(PlayPause.mediaSelector);
-    if (this._players.length == 1) { // just one player on the page? if playing, update the state
-      if (media.length == 1 && !media[0].paused) {
+    if (this._players.length === 1) { // just one player on the page? if playing, update the state
+      if (media.length === 1 && !media[0].paused) {
         this._paused = false;
       }
     } else { // multiple players on the page? if playing, unset the state; it will update on next click event

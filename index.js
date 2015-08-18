@@ -50,7 +50,7 @@
 
       playPause.addEventListener("mousedown", function (event) {
         // Make sure it's a single LMB click.
-        if (event.button != 0 || event.detail != 1) {
+        if (event.button !== 0 || event.detail !== 1) {
           return;
         }
         worker.port.emit("toggle");
@@ -79,7 +79,7 @@
   function stripSymbolsFromLabel(label) {
     let tokenArray = label.split(" ");
     for (let idx = 0; idx < tokenArray.length; idx++) {
-      if (stripSymbols.indexOf(tokenArray[idx]) == -1) {
+      if (stripSymbols.indexOf(tokenArray[idx]) === -1) {
         return tokenArray.slice(idx).join(" ");
       }
     }
@@ -168,7 +168,7 @@
     worker.port.on("paused", function (paused) {
       let playPause = getPlayPauseElement(xulTab);
       if (playPause) {
-        playPause.textContent = (paused ? pauseSymbol : playSymbol);
+        playPause.textContent = paused ? pauseSymbol : playSymbol;
       }
     });
     worker.on("detach", function () {

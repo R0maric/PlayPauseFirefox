@@ -6,7 +6,7 @@
 (function() {
   "use strict";
 
-  //noinspection JSUnusedLocalSymbols
+  //noinspection JSUnusedLocalSymbols, JSHint
   function TwoButtonGenericPlayer(id, win, selector, playerData) {
     this._playButton = win.document.querySelector(playerData.playButtonSelector);
     this._pauseButton = win.document.querySelector(playerData.pauseButtonSelector);
@@ -18,7 +18,7 @@
       that._observer.observe(that._playButton, {attributes: true, attributeFilter: ["style"]});
     }
 
-    if ((!this._playButton || !this._pauseButton)) {
+    if (!this._playButton || !this._pauseButton) {
       PlayPause.waitForElementPromise(playerData.playButtonSelector, win.document.body)
         .then(function(buttonElem) {
           that._playButton = buttonElem;
@@ -32,7 +32,7 @@
     }
   }
 
-  TwoButtonGenericPlayer.preCondition = function(win, selector, playerData) {
+  TwoButtonGenericPlayer.preCondition = function(win, selector, playerData) { // jshint ignore:line
     return playerData.waitForButton ||
       !!( win.document.querySelector(playerData.playButtonSelector) &&
           win.document.querySelector(playerData.pauseButtonSelector) );
@@ -42,7 +42,7 @@
   Object.defineProperty(
     TwoButtonGenericPlayer.prototype,
     "paused",
-    { get: function() { return this._playButton ? (this._playButton.style.display != "none") : null; } }
+    { get: function() { return this._playButton ? this._playButton.style.display !== "none" : null; } }
   );
   TwoButtonGenericPlayer.prototype.play = function() { if (this.paused) { this._playButton.click(); } };
   TwoButtonGenericPlayer.prototype.pause = function() { if (!this.paused) { this._pauseButton.click(); } };

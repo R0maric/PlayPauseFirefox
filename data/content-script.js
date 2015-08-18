@@ -23,7 +23,7 @@
   }
 
   function getPausedState() {
-    if (playersList.length == 0) {
+    if (playersList.length === 0) {
       return null;
     }
     // Accumulated 'paused' value:
@@ -70,7 +70,7 @@
         }
       }
     }
-    if (playersList.length == 0) {
+    if (playersList.length === 0) {
       self.port.emit("disable");
       return;
     }
