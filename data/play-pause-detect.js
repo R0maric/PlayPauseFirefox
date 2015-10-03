@@ -7,6 +7,12 @@
   "use strict";
 
   const generalPlayers = [
+    { // Last.fm
+      regex: /.*\.last\.fm.*/,
+      selector: "button.js-play-pause",
+      playingClass: "player-bar-btn--pause",
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     { // Pandora
       regex: /.*\.pandora\.com.*/,
       playButtonSelector: ".playButton",
@@ -73,13 +79,13 @@
   ];
 
   const nonEmbedPlayers = [
-    {  // YouTube HTML5 on-site (or on Last.fm, or on Songza)
-      regex: /.*(youtube\.com|last\.fm|songza\.com).*/,
+    {  // YouTube HTML5 on-site (or on Songza)
+      regex: /.*(youtube\.com|songza\.com).*/,
       selector: ".ytp-play-button",
       create: PlayPause.MultiButtonHtml5Player
     },
-    {  // YouTube Flash on-site (or on Last.fm)
-      regex: /.*(youtube\.com|last\.fm).*/,
+    {  // YouTube Flash on-site
+      regex: /.*youtube\.com.*/,
       selector: "object, embed",
       srcRegex: /.*\.youtube\.com.*/,
       stateGetterName: "getPlayerState",
