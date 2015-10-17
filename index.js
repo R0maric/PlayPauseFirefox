@@ -120,7 +120,7 @@
     }
 
     fixTabAttributes.forEach(function(attribute) {
-      if (xulTab[attribute]) {
+      if (xulTab.getAttribute(attribute)) {
         closeButton.setAttribute(attribute, "true");
       } else {
         closeButton.removeAttribute(attribute);
@@ -177,7 +177,11 @@
       if (xulTab) {
         removeEventBindings(xulTab);
         removePlayPauseSymbol(xulTab);
-        setTabLabelValueForTab(xulTab, sdkTab.title, false);
+        try {
+          setTabLabelValueForTab(xulTab, sdkTab.title, false);
+        } catch (e) {
+          // should happen for tab/browser closing; do nothing
+        }
         xulTab = null;
       }
       delete workers[id];
