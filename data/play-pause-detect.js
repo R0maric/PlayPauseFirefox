@@ -72,6 +72,18 @@
       selector: "div.js-play-pause",
       create: PlayPause.MultiButtonHtml5Player
     },
+    { // Deezer
+      regex: /.*\.deezer\.com.*/,
+      selector: ".control-play",
+      playingClass: "pause",
+      create: PlayPause.SingleButtonGenericPlayer
+    },
+    { // Jango
+      regex: /.*\.jango\.com.*/,
+      selector: "#btn-playpause",
+      playingClass: "pause",
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
