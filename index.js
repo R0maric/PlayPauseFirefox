@@ -4,6 +4,7 @@
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
 // TODO: YouTube observer
+// TODO: iHeartRadio "buffering" class as playing
 // TODO: investigate close button bug
 // TODO: fix SoundCloud embedded delayed load
 // TODO: detect tab tear-off/merge events

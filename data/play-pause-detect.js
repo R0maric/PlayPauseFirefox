@@ -84,6 +84,12 @@
       playingClass: "pause",
       create: PlayPause.SingleButtonGenericPlayer
     },
+    { // iHeartRadio
+      regex: /.*\.iheart\.com.*/,
+      selector: "button.play",
+      playingClass: "playing", // TODO: add "buffering" class
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
