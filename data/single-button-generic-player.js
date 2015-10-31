@@ -16,22 +16,39 @@
     this._observer = null;
     this._playingClass = playerData.playingClass || "playing";
 
+    if (playerData.indicatorSelector) {
+      this._indicator = win.document.querySelector(playerData.indicatorSelector);
+    }
+
     let that = this;
     function initButtonObserver() {
-      that._observer = new MutationObserver(() => { PlayPause.emitStateChanged(id); });
-      that._observer.observe(that._currentPlayer, {attributes: true, attributeFilter: ["class"]});
+      let indicator = that.getIndicator();
+      if (indicator) {
+        that._observer = new MutationObserver(() => { PlayPause.emitStateChanged(id); });
+        that._observer.observe(indicator, {attributes: true, attributeFilter: ["class"]});
+      }
     }
 
     if (!this._currentPlayer) {
       PlayPause.waitForElementPromise(selector, win.document.body)
-        .then(function(buttonElem) {
-          that._currentPlayer = buttonElem;
+        .then(function(elem) {
+          that._currentPlayer = elem;
           initButtonObserver();
           PlayPause.emitStateChanged(id);
         }
       );
     } else {
       initButtonObserver();
+    }
+
+    if (playerData.indicatorSelector && !this._indicator) {
+      PlayPause.waitForElementPromise(playerData.indicatorSelector, win.document.body)
+        .then(function(elem) {
+          that._indicator = elem;
+          initButtonObserver();
+          PlayPause.emitStateChanged(id);
+        }
+      );
     }
   }
 
@@ -46,10 +63,11 @@
     {
       get: function() {
         return this._currentPlayer && this._currentPlayer.className.indexOf("disabled") === -1 ?
-          this._currentPlayer.className.indexOf(this._playingClass) === -1 : null;
+          this.getIndicator().className.indexOf(this._playingClass) === -1 : null;
       }
     }
   );
+  SingleButtonGenericPlayer.prototype.getIndicator = function() { return this._indicator || this._currentPlayer; };
   SingleButtonGenericPlayer.prototype.destroy = function() { if (this._observer) { this._observer.disconnect(); } };
 
   window.PlayPause = window.PlayPause || {};

@@ -90,6 +90,13 @@
       playingClass: "playing", // TODO: add "buffering" class
       create: PlayPause.SingleButtonGenericPlayer
     },
+    { // Slacker
+      regex: /.*\.slacker\.com.*/,
+      selector: "a.play",
+      indicatorSelector: "li.playpause",
+      playingClass: " play", // HACK: preceding space is important!
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
@@ -97,8 +104,8 @@
   ];
 
   const nonEmbedPlayers = [
-    {  // YouTube HTML5 on-site (or on Songza)
-      regex: /.*(youtube\.com|songza\.com).*/,
+    {  // YouTube HTML5 on-site
+      regex: /.*youtube\.com.*/,
       selector: ".ytp-play-button",
       create: PlayPause.MultiButtonHtml5Player
     },
