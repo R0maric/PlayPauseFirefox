@@ -97,6 +97,11 @@
       playingClass: " play", // HACK: preceding space is important!
       create: PlayPause.SingleButtonGenericPlayer
     },
+    { // Spotify
+      regex: /.*play\.spotify\.com.*/,
+      selector: "#play-pause",
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player

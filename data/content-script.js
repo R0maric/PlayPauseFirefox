@@ -52,6 +52,11 @@
     }
   }
 
+  // STUB: force IFrames for Spotify
+  function forceIframesBySite(url) {
+    return /.*play\.spotify\.com.*/.test(url);
+  }
+
   function doAttach(options) {
     PlayPause.options = options;
     playersList = [];
@@ -60,7 +65,7 @@
       ++nextPlayerId;
       playersList.push(player);
     }
-    if (options.doEmbeds) {
+    if (options.doEmbeds || forceIframesBySite(window.location.href)) {
       let iframes = document.querySelectorAll("iframe");
       for (let i = 0; i < iframes.length; i++) {
         player = PlayPause.detectPlayer(nextPlayerId, iframes[i].contentWindow);
