@@ -76,6 +76,7 @@
       }
     }
     if (playersList.length === 0) {
+      playersList = null;
       self.port.emit("disable");
       return;
     }

@@ -3,6 +3,8 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
+// TODO: youtube front page?
+// TODO: fix Twitch
 // TODO: iHeartRadio "buffering" class as playing
 // TODO: fix SoundCloud embedded delayed load
 // TODO: detect tab tear-off/merge events
@@ -141,6 +143,17 @@
     xulTab.removeEventListener("TabAttrModified", tabModifiedHandler);
   }
 
+  function setSymbolGlyph(xulTab, paused) {
+    let playPause = getPlayPauseElement(xulTab);
+    if (playPause) {
+      let invertIndicator = simplePrefs.prefs["invert-indicator"];
+      if (paused === undefined) {
+        paused = (playPause.textContent === pauseSymbol) === invertIndicator;
+      }
+      playPause.textContent = (paused !== invertIndicator) ? pauseSymbol : playSymbol;
+    }
+  }
+
   function startListening(worker) {
     let sdkTab = worker.tab;
     if (!sdkTab) {
@@ -166,12 +179,7 @@
     worker.port.on("stateChanged", function (id) {
       worker.port.emit("query", id);
     });
-    worker.port.on("paused", function (paused) {
-      let playPause = getPlayPauseElement(xulTab);
-      if (playPause) {
-        playPause.textContent = paused ? pauseSymbol : playSymbol;
-      }
-    });
+    worker.port.on("paused", setSymbolGlyph.bind(null, xulTab));
     worker.on("detach", function () {
       if (xulTab) {
         removeEventBindings(xulTab);
@@ -216,8 +224,15 @@
     }
   }
 
+  function resetIndicators() {
+    for (let id in workers) {
+      setSymbolGlyph(viewFor(workers[id].tab));
+    }
+  }
+
   exports.main = function() {
     simplePrefs.on("do-embeds", resetPageMod);
+    simplePrefs.on("invert-indicator", resetIndicators);
     createPageMod();
   };
 })();
