@@ -6,6 +6,11 @@
 (function() {
   "use strict";
 
+  const iframeForceList = [
+    /.*play\.spotify\.com.*/,
+    /.*twitch\.tv.*/
+  ];
+
   let playersList = null;
   let activePlayer = null;
   let nextPlayerId = 0;
@@ -52,9 +57,8 @@
     }
   }
 
-  // STUB: force IFrames for Spotify
   function forceIframesBySite(url) {
-    return /.*play\.spotify\.com.*/.test(url);
+    return iframeForceList.some((regex) => regex.test(url));
   }
 
   function doAttach(options) {

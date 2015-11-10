@@ -8,6 +8,14 @@
 
   // TODO: generalize single- and two-button generic players
 
+  function checkPausedByClass(elem, playingClass) {
+    return elem.className.indexOf(playingClass) === -1;
+  }
+
+  function checkPausedByAttribute(elem, attributeName) {
+    return elem.getAttribute(attributeName) === "true";
+  }
+
   function SingleButtonGenericPlayer(id, win, selector, playerData) {
     this._playFuncName = "click";
     this._pauseFuncName = "click";
@@ -15,6 +23,7 @@
     this._currentPlayer = win.document.querySelector(selector);
     this._observer = null;
     this._playingClass = playerData.playingClass || "playing";
+    this._pausedChecker = playerData.indicatorTypeAttribute ? checkPausedByAttribute : checkPausedByClass;
 
     if (playerData.indicatorSelector) {
       this._indicator = win.document.querySelector(playerData.indicatorSelector);
@@ -24,8 +33,9 @@
     function initButtonObserver() {
       let indicator = that.getIndicator();
       if (indicator) {
+        let attributeName = playerData.indicatorTypeAttribute ? that._playingClass : "class";
         that._observer = new MutationObserver(() => { PlayPause.emitStateChanged(id); });
-        that._observer.observe(indicator, {attributes: true, attributeFilter: ["class"]});
+        that._observer.observe(indicator, {attributes: true, attributeFilter: [attributeName]});
       }
     }
 
@@ -50,6 +60,22 @@
         }
       );
     }
+
+    /*
+    let containerSelector = playerData.containerSelector;
+    if (containerSelector) {
+      let container = this._currentPlayer.parentNode;
+      while (container && container.matches && !container.matches(containerSelector)) {
+        container = container.parentNode;
+      }
+      if (container) {
+        this._observer = new MutationObserver(function() {
+          that._currentPlayer = ; // get player anew
+        });
+        this._observer.observe(container, {childList: true, subtree: true});
+      }
+    }
+    */
   }
 
   SingleButtonGenericPlayer.preCondition = function(win, selector, playerData) {
@@ -63,7 +89,7 @@
     {
       get: function() {
         return this._currentPlayer && this._currentPlayer.className.indexOf("disabled") === -1 ?
-          this.getIndicator().className.indexOf(this._playingClass) === -1 : null;
+          this._pausedChecker(this.getIndicator(), this._playingClass) : null;
       }
     }
   );

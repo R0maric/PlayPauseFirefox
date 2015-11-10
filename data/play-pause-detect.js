@@ -35,11 +35,11 @@
       selector: ".acs-mp3-play, .acs-mp3-pause, div.sample-button",
       create: PlayPause.MultiButtonHtml5Player
     },
-    { // AllMusic
-      regex: /.*allmusic\.com.*/,
-      selector: "a.audio-player",
-      create: PlayPause.SingleButtonGenericPlayer
-    },
+    //{ // AllMusic // does not work
+    //  regex: /.*allmusic\.com.*/,
+    //  selector: "a.audio-player",
+    //  create: PlayPause.SingleButtonGenericPlayer
+    //},
     { // Rdio
       regex: /.*rdio\.com.*/,
       selector: "button.play_pause",
@@ -55,12 +55,11 @@
     },
     {  // Twitch.tv on-site
       regex: /.*twitch\.tv.*/,
-      selector: "object, embed",
-      srcRegex: /.*TwitchPlayer\.swf.*/,
-      stateGetterName: "isPaused",
-      playStateValue: false,
-      containerSelector: "div.content",
-      create: PlayPause.DirectAccessFlashPlayer
+      selector: "button.player-button--playpause",
+      indicatorSelector: "div.player",
+      indicatorTypeAttribute: true,
+      playingClass: "data-paused",
+      create: PlayPause.SingleButtonGenericPlayer
     },
     { // MySpace
       regex: /.*myspace\.com.*/,
@@ -137,11 +136,12 @@
       create: PlayPause.DirectAccessFlashPlayer
     },
     {  // Twitch.tv embedded
-      selector: "object, embed",
-      srcRegex: /.*TwitchPlayer\.swf.*/,
-      stateGetterName: "isPaused",
-      playStateValue: false,
-      create: PlayPause.DirectAccessFlashPlayer
+      regex: /.*twitch\.tv.*/,
+      selector: "button.player-button--playpause",
+      indicatorSelector: "div.player",
+      indicatorTypeAttribute: true,
+      playingClass: "data-paused",
+      create: PlayPause.SingleButtonGenericPlayer
     },
     {  // Ooyala Flash embedded
       selector: "object, embed",

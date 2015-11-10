@@ -3,10 +3,11 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
+// TODO: fix Private Browsing
+// TODO: Songza
+// TODO: Twitch front page observer
 // TODO: youtube front page?
-// TODO: fix Twitch
 // TODO: iHeartRadio "buffering" class as playing
-// TODO: fix SoundCloud embedded delayed load
 // TODO: detect tab tear-off/merge events
 
 (function() {
