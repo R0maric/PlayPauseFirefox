@@ -25,6 +25,7 @@
   const stripSymbols = [playSymbol, playSymbolAlt, playSymbolLarge, stopSymbol];
 
   const fixTabAttributes = ["pinned", "selected", "visuallyselected"];
+  const fixSoundAttributes = ["soundplaying", "muted"];
 
   const experimentalSupport = [/.*allmusic\.com.*/, /.*facebook\.com.*/];
 
@@ -106,6 +107,16 @@
     addPlayPauseSymbol(xulTab);
   }
 
+  function propagateAttributes(fromElem, toElem, attrArray) {
+    attrArray.forEach(function(attribute) {
+      if (fromElem.getAttribute(attribute)) {
+        toElem.setAttribute(attribute, "true");
+      } else {
+        toElem.removeAttribute(attribute);
+      }
+    });
+  }
+
   function tabModifiedHandler(event) {
     let xulTab = event.target;
     let chromeDocument = xulTab.ownerDocument;
@@ -117,17 +128,15 @@
       // Check if "Tab Mix Plus" Close button is present.
       closeButton = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "tmp-close-button");
     }
-    if (!closeButton) {
-      return;
+    if (closeButton) {
+      propagateAttributes(xulTab, closeButton, fixTabAttributes);
     }
 
-    fixTabAttributes.forEach(function(attribute) {
-      if (xulTab.getAttribute(attribute)) {
-        closeButton.setAttribute(attribute, "true");
-      } else {
-        closeButton.removeAttribute(attribute);
-      }
-    });
+    let soundButton = chromeDocument.getAnonymousElementByAttribute(xulTab, "anonid", "soundplaying-icon");
+    if (soundButton) {
+      propagateAttributes(soundButton.previousSibling, soundButton, fixSoundAttributes);
+      soundButton.removeAttribute("selected");
+    }
   }
 
   function addEventBindings(xulTab) {
