@@ -3,7 +3,6 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: fix Private Browsing
 // TODO: Songza
 // TODO: Twitch front page observer
 // TODO: youtube front page?
@@ -53,14 +52,39 @@
       playPause.style.cursor = "default";
       playPause.style.marginRight = "0.25em";
 
-      playPause.addEventListener("mousedown", function (event) {
-        // Make sure it's a single LMB click.
-        if (event.button !== 0 || event.detail !== 1) {
-          return;
-        }
-        worker.port.emit("toggle");
-        event.stopPropagation();
-      }, true);
+      let tabMixPlusHack = !!xulTab.onMouseCommand;
+      if (tabMixPlusHack) {
+        let overPlayPause = false;
+        playPause.addEventListener("mouseover", function () {
+          overPlayPause = true;
+        }, true);
+        playPause.addEventListener("mouseout", function () {
+          overPlayPause = false;
+        }, true);
+
+        playPause.cachedOnMouseCommand = xulTab.onMouseCommand;
+        xulTab.onMouseCommand = function(event) {
+          if (overPlayPause) {
+            // Make sure it's a single LMB click with no modifiers.
+            if (event.button === 0 && event.detail === 1 &&
+                !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
+              worker.port.emit("toggle");
+              event.stopPropagation();
+              return;
+            }
+          }
+          return playPause.cachedOnMouseCommand.call(this, event);
+        };
+      } else {
+        playPause.addEventListener("mousedown", function (event) {
+          // Make sure it's a single LMB click with no modifiers.
+          if (event.button === 0 && event.detail === 1 &&
+              !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
+            worker.port.emit("toggle");
+            event.stopPropagation();
+          }
+        }, true);
+      }
 
       let tabContent = chromeDocument.getAnonymousElementByAttribute(xulTab, "class", "tab-content");
       let tabLabel = getTabLabelElement(xulTab);
@@ -76,7 +100,10 @@
 
   function removePlayPauseSymbol(xulTab) {
     let playPause = getPlayPauseElement(xulTab);
-    if (playPause) {
+    if (!!playPause) {
+      if (!!playPause.cachedOnMouseCommand) {
+        xulTab.onMouseCommand = playPause.cachedOnMouseCommand;
+      }
       playPause.remove();
     }
   }
