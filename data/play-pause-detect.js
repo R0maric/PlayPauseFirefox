@@ -101,6 +101,12 @@
       selector: "#play-pause",
       create: PlayPause.SingleButtonGenericPlayer
     },
+    { // Pocket Casts
+      regex: /.*play\.pocketcasts\.com.*/,
+      selector: "div.play_pause_button",
+      playingClass: " pause_button", // HACK: preceding space is important!
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
