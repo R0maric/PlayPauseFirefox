@@ -3,7 +3,7 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: Songza
+// TODO: Tidal, wimp, Rhapsody
 // TODO: Twitch front page observer
 // TODO: youtube front page?
 // TODO: iHeartRadio "buffering" class as playing
@@ -30,6 +30,8 @@
 
   let workers = {}; // workers cache
   let pageMod = null;
+  let hotkey = null;
+  let smartPauseTabs = null;
 
   function getPlayPauseElement(xulTab) {
     return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "anonid", "play-pause");
@@ -191,6 +193,39 @@
     }
   }
 
+  function toggleAllTabs() {
+    for (let id in workers) {
+      workers[id].port.emit("toggle");
+    }
+  }
+
+  function smartPause() {
+    // Collect ids of playing tabs
+    let invertIndicator = simplePrefs.prefs["invert-indicator"];
+    let playingTabs = [];
+    for (let id in workers) {
+      let playPause = getPlayPauseElement(viewFor(workers[id].tab));
+      if (!!playPause && ((playPause.textContent === pauseSymbol) === invertIndicator)) {
+        playingTabs.push(id);
+      }
+    }
+
+    // If there are playing tabs, remember the ids
+    if (playingTabs.length > 0) {
+      smartPauseTabs = playingTabs;
+    }
+
+    // If there are remembered ids, toggle them
+    if (!!smartPauseTabs && (smartPauseTabs.length > 0)) {
+      for (let id of smartPauseTabs) {
+        let worker = workers[id];
+        if (worker) {
+          worker.port.emit("toggle");
+        }
+      }
+    }
+  }
+
   function startListening(worker) {
     let sdkTab = worker.tab;
     if (!sdkTab) {
@@ -213,8 +248,8 @@
       addEventBindings(xulTab);
       worker.port.emit("query");
     });
-    worker.port.on("stateChanged", function (id) {
-      worker.port.emit("query", id);
+    worker.port.on("stateChanged", function (playerId) {
+      worker.port.emit("query", playerId);
     });
     worker.port.on("paused", setSymbolGlyph.bind(null, xulTab));
     worker.on("detach", function () {
@@ -232,33 +267,31 @@
     });
     worker.port.once("disable", function () {
       worker.destroy();
+      delete workers[id];
     });
-  }
-
-  function createPageMod() {
-    pageMod = require("sdk/page-mod").PageMod({
-        include: "*", // Match everything
-        exclude: experimentalSupport,
-        attachTo: ["existing", "top"],
-        contentScriptFile: [
-          "./play-pause-base.js",
-          "./buttonless-html5-player.js",
-          "./multibutton-html5-player.js",
-          "./single-button-generic-player.js",
-          "./two-button-generic-player.js",
-          "./direct-access-flash-player.js",
-          "./play-pause-detect.js",
-          "./content-script.js"
-        ],
-        onAttach: startListening
-      });
   }
 
   function resetPageMod() {
     if (pageMod) {
       pageMod.destroy();
-      createPageMod();
     }
+
+    pageMod = require("sdk/page-mod").PageMod({
+      include: "*", // Match everything
+      exclude: experimentalSupport,
+      attachTo: ["existing", "top"],
+      contentScriptFile: [
+        "./play-pause-base.js",
+        "./buttonless-html5-player.js",
+        "./multibutton-html5-player.js",
+        "./single-button-generic-player.js",
+        "./two-button-generic-player.js",
+        "./direct-access-flash-player.js",
+        "./play-pause-detect.js",
+        "./content-script.js"
+      ],
+      onAttach: startListening
+    });
   }
 
   function resetIndicators() {
@@ -267,9 +300,26 @@
     }
   }
 
+  function resetHotkey() {
+    if (hotkey) {
+      hotkey.destroy();
+      hotkey = null;
+    }
+
+    let action = [null, toggleAllTabs, smartPause][simplePrefs.prefs["hotkey-mode"]];
+    if (action) {
+      hotkey = require("sdk/hotkeys").Hotkey({
+        combo: "accel-alt-p",
+        onPress: action
+      });
+    }
+  }
+
   exports.main = function() {
     simplePrefs.on("do-embeds", resetPageMod);
     simplePrefs.on("invert-indicator", resetIndicators);
-    createPageMod();
+    simplePrefs.on("hotkey-mode", resetHotkey);
+    resetPageMod();
+    resetHotkey();
   };
 })();
