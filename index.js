@@ -5,7 +5,6 @@
 
 // TODO: Tidal, wimp, Rhapsody
 // TODO: Twitch front page observer
-// TODO: youtube front page?
 // TODO: iHeartRadio "buffering" class as playing
 // TODO: detect tab tear-off/merge events
 

@@ -7,6 +7,23 @@
   "use strict";
 
   const generalPlayers = [
+    {  // YouTube HTML5 on-site
+      regex: /.*youtube\.com.*/,
+      selector: ".ytp-play-button",
+      indicatorTypeAttribute: true,
+      playingClass: "aria-label",
+      playingValue: "Play",
+      waitForButton: true,
+      create: PlayPause.SingleButtonGenericPlayer
+    },
+    {  // YouTube Flash on-site
+      regex: /.*youtube\.com.*/,
+      selector: "object, embed",
+      srcRegex: /.*\.youtube\.com.*/,
+      stateGetterName: "getPlayerState",
+      playStateValue: 1,
+      create: PlayPause.DirectAccessFlashPlayer
+    },
     { // Last.fm
       regex: /.*\.last\.fm.*/,
       selector: "button.js-play-pause",
@@ -113,22 +130,6 @@
     }
   ];
 
-  const nonEmbedPlayers = [
-    {  // YouTube HTML5 on-site
-      regex: /.*youtube\.com.*/,
-      selector: ".ytp-play-button",
-      create: PlayPause.MultiButtonHtml5Player
-    },
-    {  // YouTube Flash on-site
-      regex: /.*youtube\.com.*/,
-      selector: "object, embed",
-      srcRegex: /.*\.youtube\.com.*/,
-      stateGetterName: "getPlayerState",
-      playStateValue: 1,
-      create: PlayPause.DirectAccessFlashPlayer
-    }
-  ];
-
   const embedPlayers = [
     {  // YouTube HTML5 embedded
       selector: ".ytp-play-button",
@@ -181,7 +182,10 @@
       }
     }
 
-    let playerDataList = generalPlayers.concat(PlayPause.options.doEmbeds ? embedPlayers : nonEmbedPlayers);
+    let playerDataList = generalPlayers;
+    if (PlayPause.options.doEmbeds) {
+      playerDataList = generalPlayers.concat(embedPlayers);
+    }
     for (let i = 0; i < playerDataList.length; i++) {
       let playerData = playerDataList[i];
       let player = null;
