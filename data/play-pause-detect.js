@@ -124,6 +124,12 @@
       playingClass: " pause_button", // HACK: preceding space is important!
       create: PlayPause.SingleButtonGenericPlayer
     },
+    { // Mixcloud
+      regex: /.*\.mixcloud\.com.*/,
+      selector: "div.player-control",
+      playingClass: "pause-state",
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
