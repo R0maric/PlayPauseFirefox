@@ -3,7 +3,7 @@
 //     (c) 2015 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: Tidal, wimp, Rhapsody
+// TODO: wimp, Rhapsody
 // TODO: Twitch front page observer
 // TODO: iHeartRadio "buffering" class as playing
 // TODO: detect tab tear-off/merge events

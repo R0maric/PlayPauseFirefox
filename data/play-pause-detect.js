@@ -130,6 +130,13 @@
       playingClass: "pause-state",
       create: PlayPause.SingleButtonGenericPlayer
     },
+    { // Tidal
+      regex: /.*listen\.tidal\.com.*/,
+      playButtonSelector: "button.play-controls__play",
+      pauseButtonSelector: "button.play-controls__pause",
+      waitForButton: true,
+      create: PlayPause.TwoButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
