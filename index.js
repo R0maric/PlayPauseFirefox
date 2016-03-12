@@ -3,7 +3,6 @@
 //     (c) 2015-2016 Daniel Kamkha
 //     Play/Pause is free software distributed under the terms of the MIT license.
 
-// TODO: Rhapsody
 // TODO: Twitch front page observer
 // TODO: iHeartRadio "buffering" class as playing
 
@@ -36,7 +35,7 @@
   }
 
   function getTabLabelElement(xulTab) {
-    return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "anonid", "tab-label");
+    return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "class", "tab-text tab-label");
   }
 
   function addPlayPauseSymbol(xulTab) {
