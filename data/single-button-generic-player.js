@@ -12,8 +12,8 @@
     return elem.className.indexOf(playingClass) === -1;
   }
 
-  function checkPausedByAttribute(elem, attributeName, attributeValue) {
-    return elem.getAttribute(attributeName) === attributeValue;
+  function checkPausedByAttribute(elem, attributeName) {
+    return elem.getAttribute(attributeName) === "true";
   }
 
   function SingleButtonGenericPlayer(id, win, selector, playerData) {
@@ -23,7 +23,6 @@
     this._currentPlayer = win.document.querySelector(selector);
     this._observer = null;
     this._playingClass = playerData.playingClass || "playing";
-    this._playingValue = playerData.playingValue || "true";
     this._pausedChecker = playerData.indicatorTypeAttribute ? checkPausedByAttribute : checkPausedByClass;
 
     if (playerData.indicatorSelector) {
@@ -90,7 +89,7 @@
     {
       get: function() {
         return this._currentPlayer && this._currentPlayer.className.indexOf("disabled") === -1 ?
-          this._pausedChecker(this.getIndicator(), this._playingClass, this._playingValue) : null;
+          this._pausedChecker(this.getIndicator(), this._playingClass) : null;
       }
     }
   );
