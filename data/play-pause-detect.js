@@ -35,11 +35,6 @@
       selector: ".acs-mp3-play, .acs-mp3-pause, div.sample-button",
       create: PlayPause.MultiButtonHtml5Player
     },
-    //{ // AllMusic // does not work
-    //  regex: /.*allmusic\.com.*/,
-    //  selector: "a.audio-player",
-    //  create: PlayPause.SingleButtonGenericPlayer
-    //},
     { // Rdio
       regex: /.*rdio\.com.*/,
       selector: "button.play_pause",

@@ -60,22 +60,6 @@
         }
       );
     }
-
-    /*
-    let containerSelector = playerData.containerSelector;
-    if (containerSelector) {
-      let container = this._currentPlayer.parentNode;
-      while (container && container.matches && !container.matches(containerSelector)) {
-        container = container.parentNode;
-      }
-      if (container) {
-        this._observer = new MutationObserver(function() {
-          that._currentPlayer = ; // get player anew
-        });
-        this._observer.observe(container, {childList: true, subtree: true});
-      }
-    }
-    */
   }
 
   SingleButtonGenericPlayer.preCondition = function(win, selector, playerData) {

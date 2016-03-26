@@ -4,7 +4,7 @@ A Firefox extension that adds a Play/Pause toggle onto tabs that contain an HTML
 
 
 ## Usage
-You can get it here: https://addons.mozilla.org/en-US/firefox/addon/play-pause/
+You can get it here: https://addons.mozilla.org/firefox/addon/play-pause/
 
 ## Background
 Some audio/video sites add a small 'Play' indicator to the tab title when the media is playing. Which is nice. But I always wanted to be able to click on that thing and pause the playback without switching to that tab. Good news: now I can. And so can you.
