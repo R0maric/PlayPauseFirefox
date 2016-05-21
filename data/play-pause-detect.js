@@ -131,6 +131,13 @@
       waitForButton: true,
       create: PlayPause.TwoButtonGenericPlayer
     },
+    { // Gaana
+      regex: /.*gaana\.com.*/,
+      selector: "a.playPause",
+      playingClass: " pause", // HACK: preceding space is important!
+      waitForButton: true,
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
