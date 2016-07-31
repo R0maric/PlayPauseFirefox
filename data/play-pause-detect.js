@@ -138,6 +138,12 @@
       waitForButton: true,
       create: PlayPause.SingleButtonGenericPlayer
     },
+    { // Pleer.net
+      regex: /.*pleer\.net.*/,
+      selector: "#play",
+      playingClass: "pause",
+      create: PlayPause.SingleButtonGenericPlayer
+    },
     {  // Bandcamp
       selector: "a.play-btn, div.playbutton, span.item_link_play",
       create: PlayPause.MultiButtonHtml5Player
