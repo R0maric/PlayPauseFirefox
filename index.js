@@ -27,7 +27,7 @@
   const fixTabAttributes = ["pinned", "selected", "visuallyselected"];
   const fixSoundAttributes = ["soundplaying", "muted"];
 
-  const experimentalSupport = [/.*allmusic\.com.*/, /.*facebook\.com.*/];
+  const experimentalSupport = [/.*allmusic\.com.*/, /.*facebook\.com.*/, /.*inoreader\.com.*/];
 
   let workers = {}; // workers cache
   let pageMod = null;
@@ -53,7 +53,7 @@
       playPause = chromeDocument.createElement("div");
       playPause.setAttribute("anonid", "play-pause");
       playPause.style.pointerEvents = "all";
-      playPause.style.cursor = "default";
+      playPause.style.cursor = "pointer";
       playPause.style.marginRight = "0.25em";
 
       let tabMixPlusHack = !!xulTab.onMouseCommand;
