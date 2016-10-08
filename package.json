@@ -33,27 +33,27 @@
       "description": "",
       "type": "bool",
       "value": false
+    }, 
+    {
+      "name": "choose-hotkey",
+      "title": "Choose hotkey",
+      "description": "",
+      "type": "control",
+      "label": "choose"
     },
     {
-      "name": "hotkey-mode",
-      "title": "Play/Pause hotkey (Ctrl-Alt-P) action",
-      "description": "",
-      "type": "menulist",
-      "value": 0,
-      "options": [
-        {
-          "value": "0",
-          "label": "None"
-        },
-        {
-          "value": "1",
-          "label": "Toggle"
-        },
-        {
-          "value": "2",
-          "label": "SmartPause"
-        }
-      ]
+      "name": "hotkey-smartPause",
+      "title": "hotkey-smartPause",
+      "type": "string",
+      "value": "",
+      "hidden": true
+    },
+    {
+      "name": "hotkey-toggleAllTabs",
+      "title": "hotkey-toggleAllTabs",
+      "type": "string",
+      "value": "",
+      "hidden": true
     }
   ]
 }
