@@ -12,6 +12,7 @@
   const { viewFor } = require("sdk/view/core");
   const { getTabId } = require("sdk/tabs/utils");
   const simplePrefs = require("sdk/simple-prefs");
+  const _ = require("sdk/l10n").get;
 
   const playSymbol = "▶";
   const pauseSymbol = "❚❚";
@@ -312,11 +313,28 @@
     }
   }
 
+function playPauseButton() {
+    const actionButton = require("sdk/ui").ActionButton;
+    actionButton({
+      id: "buttonToggleAllTabs",
+      label: _("buttonTitleToggleAllTabs"),
+      icon: "./images/toggleAllTabs.png",
+      onClick: toggleAllTabs
+    });
+    actionButton({
+      id: "buttonSmartPause",
+      label: _("buttonTitleSmartPause"),
+      icon: "./images/smartPause.png",
+      onClick: smartPause
+    });
+  }
+
   exports.main = function() {
     simplePrefs.on("do-embeds", resetPageMod);
     simplePrefs.on("invert-indicator", resetIndicators);
     simplePrefs.on("hotkey-mode", resetHotkey);
     resetPageMod();
     resetHotkey();
+    playPauseButton();
   };
 })();

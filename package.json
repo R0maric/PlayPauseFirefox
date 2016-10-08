@@ -13,6 +13,12 @@
       "https://w.soundcloud.com/"
     ]
   },
+  "locales": {
+    "fr": {
+      "title": "Play/Pause",
+      "description": "Ajoute un bouton Lecture/Pause sur les onglets qui contiennent un lecteur audio/video HTML5."
+    }
+  },
   "preferences": [
     {
       "name": "do-embeds",
@@ -41,11 +47,11 @@
         },
         {
           "value": "1",
-          "label": "Toggle Play/Pause for all tabs"
+          "label": "Toggle"
         },
         {
           "value": "2",
-          "label": "Smart Pause"
+          "label": "SmartPause"
         }
       ]
     }
