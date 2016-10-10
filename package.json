@@ -33,6 +33,49 @@
       "description": "",
       "type": "bool",
       "value": false
+    },
+    {
+      "name": "indicator-mode",
+      "title": "indicator-mode",
+      "description": "",
+      "type": "radio",
+      "value": 0,
+      "options": [{
+        "value": 0,
+        "label": "text"
+      }, {
+        "value": 1,
+        "label": "favicon"
+      }, {
+        "value": 2,
+        "label": "both"
+      }]
+    },
+    {
+      "name": "favicon-sites",
+      "title": "favicon-sites",
+      "description": "",
+      "type": "string",
+      "value": "youtube.com,twitch.tv,koreus.com"
+    },
+    {
+      "name": "color-mode",
+      "title": "color-mode",
+      "description": "",
+      "type": "bool",
+      "value": false
+    },
+    {
+      "type": "color",
+      "name": "color-play-tab",
+      "value": "#000000",
+      "title": "color-play-tab"
+    },
+    {
+      "type": "color",
+      "name": "color-pause-tab",
+      "value": "#000000",
+      "title": "color-pause-tab"
     }, 
     {
       "name": "choose-hotkey",
