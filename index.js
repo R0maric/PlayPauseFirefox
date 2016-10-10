@@ -16,9 +16,6 @@
   const { getTabId } = require("sdk/tabs/utils");
   const simplePrefs = require("sdk/simple-prefs");
   const _ = require("sdk/l10n").get;
-  const getTab = require("sdk/tabs/utils");
-  const urlSDK = require("sdk/url");
-  const self = require("sdk/self");
 
   const playSymbol = "▶";
   const pauseSymbol = "❚❚";
@@ -46,21 +43,8 @@
     return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "class", "tab-text tab-label");
   }
 
-  function getPlayPauseFaviconElement(xulTab) {
-    return xulTab.ownerDocument.getAnonymousElementByAttribute(xulTab, "class", "tab-icon-image");
-  }
-  function getDomainSiteName(xulTab) {
-    var host = urlSDK.URL(getTab.getTabURL(getTab.getTabForId(getTabId(xulTab)))).host.split(".");
-    return [host[host.length - 2], host[host.length - 1]];
-  }
-
   function addPlayPauseSymbol(xulTab) {
     let playPause = getPlayPauseElement(xulTab);
-
-    let playPauseFavicon = getPlayPauseFaviconElement(xulTab);
-    let indicatorMode = simplePrefs.prefs["indicator-mode"];
-    let faviconSites = simplePrefs.prefs["favicon-sites"];
-    let [domainSiteName, domainSiteEx] = getDomainSiteName(xulTab);
 
     if (!playPause) {
       let chromeDocument = xulTab.ownerDocument;
@@ -68,11 +52,9 @@
 
       playPause = chromeDocument.createElement("div");
       playPause.setAttribute("anonid", "play-pause");
-      if (indicatorMode === 0 || indicatorMode === 2 || (faviconSites.indexOf(domainSiteName + "." + domainSiteEx) === -1 && faviconSites !== "*")) {
-        playPause.style.pointerEvents = "all";
-        playPause.style.cursor = "pointer";
-        playPause.style.marginRight = "0.25em";
-      }
+      playPause.style.pointerEvents = "all";
+      playPause.style.cursor = "pointer";
+      playPause.style.marginRight = "0.25em";
 
       let tabMixPlusHack = !!xulTab.onMouseCommand;
       if (tabMixPlusHack) {
@@ -108,19 +90,6 @@
         }, true);
       }
 
-      if (indicatorMode > 0) {
-        playPauseFavicon.style.cursor = "pointer";
-        playPauseFavicon.style.pointerEvents = "all";
-        playPauseFavicon.addEventListener("mousedown", function(event) {
-          // Make sure it's a single LMB click with no modifiers.
-          if (event.button === 0 && event.detail === 1 &&
-            !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
-            worker.port.emit("toggle");
-            event.stopPropagation();
-          }
-        }, true);
-      }
-
       let tabContent = chromeDocument.getAnonymousElementByAttribute(xulTab, "class", "tab-content");
       let tabLabel = getTabLabelElement(xulTab);
       if (tabLabel) {
@@ -135,19 +104,11 @@
 
   function removePlayPauseSymbol(xulTab) {
     let playPause = getPlayPauseElement(xulTab);
-    let playPauseFavicon = getPlayPauseFaviconElement(xulTab);
     if (!!playPause) {
       if (!!playPause.cachedOnMouseCommand) {
         xulTab.onMouseCommand = playPause.cachedOnMouseCommand;
       }
       playPause.remove();
-    }
-    getTabLabelElement(xulTab).style.color = "#000000";
-    if (!!playPauseFavicon) { // Remove styles of favicon
-      playPauseFavicon.style.cursor = "default";
-      playPauseFavicon.style.pointerEvents = "none";
-      let faviconSrc = playPauseFavicon.getAttribute("faviconSrc");
-      if (faviconSrc) playPauseFavicon.src = faviconSrc;
     }
   }
 
@@ -225,37 +186,12 @@
 
   function setSymbolGlyph(xulTab, paused) {
     let playPause = getPlayPauseElement(xulTab);
-
-    let playPauseFavicon = getPlayPauseFaviconElement(xulTab);
-    let indicatorMode = simplePrefs.prefs["indicator-mode"];
-    let faviconSites = simplePrefs.prefs["favicon-sites"];
-    let colorMode = simplePrefs.prefs["color-mode"];
-    let [domainSiteName, domainSiteEx] = getDomainSiteName(xulTab);
-    let faviconAvailable = (domainSiteName === "youtube" || domainSiteName === "twitch" || domainSiteName === "koreus");
-    if (faviconSites.indexOf(domainSiteName + "." + domainSiteEx) === -1 && faviconSites !== "*") indicatorMode = 0;
-
     if (playPause) {
       let invertIndicator = simplePrefs.prefs["invert-indicator"];
       if (paused === undefined) {
         paused = (playPause.textContent === pauseSymbol) === invertIndicator;
       }
       playPause.textContent = (paused !== invertIndicator) ? pauseSymbol : playSymbol;
-
-      if (faviconAvailable) {
-        if (indicatorMode > 0) {
-          let pauseURL = self.data.url("images/" + domainSiteName + "-pause.png");
-          let playURL = self.data.url("images/" + domainSiteName + "-play.png");
-          if (playPauseFavicon.src.startsWith('http')) playPauseFavicon.setAttribute("faviconSrc", playPauseFavicon.src); 
-          playPauseFavicon.src = (paused !== invertIndicator) ? pauseURL : playURL;
-        } else if (indicatorMode === 0) {
-          let faviconSrc = playPauseFavicon.getAttribute("faviconSrc");
-          if (faviconSrc) playPauseFavicon.src = faviconSrc;
-        }
-      } else {
-        colorMode = false;
-      }
-      if (indicatorMode === 1) playPause.style.display = "none";
-      if (!colorMode) getTabLabelElement(xulTab).style.color = paused ? simplePrefs.prefs["color-pause-tab"] : simplePrefs.prefs["color-play-tab"];
     }
   }
 
@@ -438,11 +374,6 @@
     simplePrefs.on("do-embeds", resetPageMod);
     simplePrefs.on("invert-indicator", resetIndicators);
     simplePrefs.on("choose-hotkey", chooseHotkey);
-    simplePrefs.on("indicator-mode", resetPageMod);
-    simplePrefs.on("color-play-tab", resetPageMod);
-    simplePrefs.on("color-pause-tab", resetPageMod);
-    simplePrefs.on("color-mode", resetPageMod);
-    simplePrefs.on("favicon-sites", resetPageMod);
     resetPageMod();
     resetHotkey();
     playPauseButton();
